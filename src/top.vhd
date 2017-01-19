@@ -70,7 +70,7 @@ architecture top_arch of top is
     signal pll_locked               : std_logic;
     signal tx_clkout                : std_logic;
     signal reconfig_from_xcvr       : std_logic_vector(137 downto 0);
-    signal reconfig_to_xcvr         : std_logic_vector(209 downto 0) := (others => '0');
+    signal reconfig_to_xcvr         : std_logic_vector(209 downto 0);
     signal reconfig_busy            : std_logic;
 
     component CustomPhy is
@@ -211,7 +211,7 @@ architecture top_arch of top is
     rx_parallel_data         <= rx_parallel_data_CH1 & rx_parallel_data_CH2;
     rx_datak                 <= rx_datak_CH1 & rx_datak_CH2;
 
-    tx_parallel_data_CH1     <= x"01235678";
-    tx_parallel_data_CH2     <= x"ABCDEF01";
+    tx_parallel_data_CH1     <= x"BC41417B";
+    tx_parallel_data_CH2     <= x"BC41417B";
 
 end top_arch;
