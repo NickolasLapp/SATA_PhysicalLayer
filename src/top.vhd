@@ -1,5 +1,6 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+use ieee.std_logic_unsigned.all;
 
 entity top is
     port(
@@ -9,86 +10,116 @@ entity top is
         pll_refclk_150 : in std_logic;  -- 150MHz PLL refclk for XCVR design,
                                         -- driven by Si570 (need to change clock frequency with Clock Control GUI)
 
+        rx_serial_data : in  std_logic_vector(1 downto 0); -- XCVR input serial line.
+        tx_serial_data : out std_logic_vector(1 downto 0); -- XCVR output serial line
 
-        rx_serial_data : in std_logic;  -- XCVR input serial line
-
-        tx_serial_data : out std_logic -- XCVR output serial line
-
-
+        USER_LED_FPGA0 : out std_logic -- LED0 for heartbeat
         );
 END top;
 
 architecture top_arch of top is
     signal reset : std_logic;
-    signal tx_ready : std_logic;
-    signal rx_ready : std_logic;
-    signal tx_forceelecidle : std_logic := '0';
-    signal pll_locked       : std_logic;
-    signal rx_runningdisp : std_logic_vector(3 downto 0);
+    signal ledCount                 : std_logic_vector(64 downto 0);
 
-    signal rx_is_lockedtoref        : std_logic;
-    signal rx_is_lockedtodata       : std_logic;
-    signal rx_signaldetect          : std_logic;
-    signal rx_bitslip               : std_logic;
+
+    -- Channel Specific Settings
+    -------------------------------------------------------
+    -- CH1
+    signal tx_forceelecidle_CH1         : std_logic := '0';
+    signal rx_runningdisp_CH1           : std_logic_vector(3 downto 0);
+    signal rx_is_lockedtoref_CH1        : std_logic;
+    signal rx_is_lockedtodata_CH1       : std_logic;
+    signal rx_signaldetect_CH1          : std_logic;
+    signal rx_bitslip_CH1               : std_logic;
+    signal rx_clkout_CH1                : std_logic;
+    signal tx_parallel_data_CH1         : std_logic_vector(31 downto 0);
+    signal tx_datak_CH1                 : std_logic_vector(3 downto 0)   := (others => '0');
+    signal rx_parallel_data_CH1         : std_logic_vector(31 downto 0);
+    signal rx_datak_CH1                 : std_logic_vector(3 downto 0);
+
+    -- CH2
+    signal tx_forceelecidle_CH2         : std_logic := '0';
+    signal rx_runningdisp_CH2           : std_logic_vector(3 downto 0);
+    signal rx_is_lockedtoref_CH2        : std_logic;
+    signal rx_is_lockedtodata_CH2       : std_logic;
+    signal rx_signaldetect_CH2          : std_logic;
+    signal rx_bitslip_CH2               : std_logic;
+    signal rx_clkout_CH2                : std_logic;
+    signal tx_parallel_data_CH2         : std_logic_vector(31 downto 0);
+    signal tx_datak_CH2                 : std_logic_vector(3 downto 0)   := (others => '0');
+    signal rx_parallel_data_CH2         : std_logic_vector(31 downto 0);
+    signal rx_datak_CH2                 : std_logic_vector(3 downto 0);
+
+    -- Channel Combined
+    signal tx_ready                 : std_logic;
+    signal rx_ready                 : std_logic;
+    signal tx_forceelecidle         : std_logic_vector(1 downto 0);
+    signal rx_runningdisp           : std_logic_vector(7 downto 0);
+    signal rx_is_lockedtoref        : std_logic_vector(1 downto 0);
+    signal rx_is_lockedtodata       : std_logic_vector(1 downto 0);
+    signal rx_signaldetect          : std_logic_vector(1 downto 0);
+    signal rx_bitslip               : std_logic_vector(1 downto 0);
+    signal rx_clkout                : std_logic_vector(1 downto 0);
+    signal tx_parallel_data         : std_logic_vector(63 downto 0);
+    signal tx_datak                 : std_logic_vector(7 downto 0);
+    signal rx_parallel_data         : std_logic_vector(63 downto 0);
+    signal rx_datak                 : std_logic_vector(7 downto 0);
+
+    -- Channel Independent Settings
+    -------------------------------------------------------
+    signal pll_locked               : std_logic;
     signal tx_clkout                : std_logic;
-    signal rx_clkout                : std_logic;
-
-    signal tx_parallel_data         : std_logic_vector(31 downto 0);
-    signal tx_datak                 : std_logic_vector(3 downto 0)   := (others => '0');
-    signal rx_parallel_data         : std_logic_vector(31 downto 0);
-    signal rx_datak                 : std_logic_vector(3 downto 0);
-    signal reconfig_from_xcvr       : std_logic_vector(91 downto 0);
-    signal reconfig_to_xcvr         : std_logic_vector(139 downto 0) := (others => '0');
-
+    signal reconfig_from_xcvr       : std_logic_vector(137 downto 0);
+    signal reconfig_to_xcvr         : std_logic_vector(209 downto 0) := (others => '0');
     signal reconfig_busy            : std_logic;
 
     component CustomPhy is
         port (
-            phy_mgmt_clk             : in  std_logic                      := '0';             --             phy_mgmt_clk.clk
-            phy_mgmt_clk_reset       : in  std_logic                      := '0';             --       phy_mgmt_clk_reset.reset
-            phy_mgmt_address         : in  std_logic_vector(8 downto 0)   := (others => '0'); --                 phy_mgmt.address
-            phy_mgmt_read            : in  std_logic                      := '0';             --                         .read
-            phy_mgmt_readdata        : out std_logic_vector(31 downto 0);                     --                         .readdata
-            phy_mgmt_waitrequest     : out std_logic;                                         --                         .waitrequest
-            phy_mgmt_write           : in  std_logic                      := '0';             --                         .write
-            phy_mgmt_writedata       : in  std_logic_vector(31 downto 0)  := (others => '0'); --                         .writedata
-            tx_ready                 : out std_logic;                                         --                 tx_ready.export
-            rx_ready                 : out std_logic;                                         --                 rx_ready.export
-            pll_ref_clk              : in  std_logic;                                         --              pll_ref_clk.clk
-            tx_serial_data           : out std_logic;                                         --           tx_serial_data.export
-            tx_forceelecidle         : in  std_logic;                                         --         tx_forceelecidle.export
-            tx_bitslipboundaryselect : in  std_logic_vector(4 downto 0)   := (others => '0'); -- tx_bitslipboundaryselect.export
-            pll_locked               : out std_logic;                                         --               pll_locked.export
-            rx_serial_data           : in  std_logic;                                         --           rx_serial_data.export
-            rx_runningdisp           : out std_logic_vector(3 downto 0);                      --           rx_runningdisp.export
-            rx_is_lockedtoref        : out std_logic;                                         --        rx_is_lockedtoref.export
-            rx_is_lockedtodata       : out std_logic;                                         --       rx_is_lockedtodata.export
-            rx_signaldetect          : out std_logic;                                         --          rx_signaldetect.export
-            rx_bitslip               : in  std_logic;                                         --               rx_bitslip.export
-            tx_clkout                : out std_logic;                                         --                tx_clkout.export
-            rx_clkout                : out std_logic;                                         --                rx_clkout.export
-            tx_parallel_data         : in  std_logic_vector(31 downto 0)  := (others => '0'); --         tx_parallel_data.export
-            tx_datak                 : in  std_logic_vector(3 downto 0)   := (others => '0'); --                 tx_datak.export
-            rx_parallel_data         : out std_logic_vector(31 downto 0);                     --         rx_parallel_data.export
-            rx_datak                 : out std_logic_vector(3 downto 0);                      --                 rx_datak.export
-            reconfig_from_xcvr       : out std_logic_vector(91 downto 0);                     --       reconfig_from_xcvr.reconfig_from_xcvr
-            reconfig_to_xcvr         : in  std_logic_vector(139 downto 0) := (others => '0')  --         reconfig_to_xcvr.reconfig_to_xcvr
+            phy_mgmt_clk             : in  std_logic;
+            phy_mgmt_clk_reset       : in  std_logic;
+            phy_mgmt_address         : in  std_logic_vector(8 downto 0);
+            phy_mgmt_read            : in  std_logic;
+            phy_mgmt_readdata        : out std_logic_vector(31 downto 0);
+            phy_mgmt_waitrequest     : out std_logic;
+            phy_mgmt_write           : in  std_logic;
+            phy_mgmt_writedata       : in  std_logic_vector(31 downto 0);
+            tx_ready                 : out std_logic;
+            rx_ready                 : out std_logic;
+            pll_ref_clk              : in  std_logic;
+            tx_serial_data           : out std_logic_vector(1 downto 0);
+            tx_forceelecidle         : in  std_logic_vector(1 downto 0);
+            tx_bitslipboundaryselect : in  std_logic_vector(9 downto 0);
+            pll_locked               : out std_logic;
+            rx_serial_data           : in  std_logic_vector(1 downto 0);
+            rx_runningdisp           : out std_logic_vector(7 downto 0);
+            rx_is_lockedtoref        : out std_logic_vector(1 downto 0);
+            rx_is_lockedtodata       : out std_logic_vector(1 downto 0);
+            rx_signaldetect          : out std_logic_vector(1 downto 0);
+            rx_bitslip               : in  std_logic_vector(1 downto 0);
+            tx_clkout                : out std_logic;
+            rx_clkout                : out std_logic_vector(1 downto 0);
+            tx_parallel_data         : in  std_logic_vector(63 downto 0);
+            tx_datak                 : in  std_logic_vector(7 downto 0);
+            rx_parallel_data         : out std_logic_vector(63 downto 0);
+            rx_datak                 : out std_logic_vector(7 downto 0);
+            reconfig_from_xcvr       : out std_logic_vector(137 downto 0);
+            reconfig_to_xcvr         : in  std_logic_vector(209 downto 0)
         );
     end component CustomPhy;
 
     component CustomPhy_Reconf is
         port (
-            reconfig_busy             : out std_logic;                                         --      reconfig_busy.reconfig_busy
-            mgmt_clk_clk              : in  std_logic                      := '0';             --       mgmt_clk_clk.clk
-            mgmt_rst_reset            : in  std_logic                      := '0';             --     mgmt_rst_reset.reset
-            reconfig_mgmt_address     : in  std_logic_vector(6 downto 0)   := (others => '0'); --      reconfig_mgmt.address
-            reconfig_mgmt_read        : in  std_logic                      := '0';             --                   .read
-            reconfig_mgmt_readdata    : out std_logic_vector(31 downto 0);                     --                   .readdata
-            reconfig_mgmt_waitrequest : out std_logic;                                         --                   .waitrequest
-            reconfig_mgmt_write       : in  std_logic                      := '0';             --                   .write
-            reconfig_mgmt_writedata   : in  std_logic_vector(31 downto 0)  := (others => '0'); --                   .writedata
-            reconfig_to_xcvr          : out std_logic_vector(139 downto 0);                    --   reconfig_to_xcvr.reconfig_to_xcvr
-            reconfig_from_xcvr        : in  std_logic_vector(91 downto 0)  := (others => '0')  -- reconfig_from_xcvr.reconfig_from_xcvr
+            reconfig_busy             : out std_logic;
+            mgmt_clk_clk              : in  std_logic;
+            mgmt_rst_reset            : in  std_logic;
+            reconfig_mgmt_address     : in  std_logic_vector(6 downto 0);
+            reconfig_mgmt_read        : in  std_logic;
+            reconfig_mgmt_readdata    : out std_logic_vector(31 downto 0);
+            reconfig_mgmt_waitrequest : out std_logic;
+            reconfig_mgmt_write       : in  std_logic;
+            reconfig_mgmt_writedata   : in  std_logic_vector(31 downto 0);
+            reconfig_to_xcvr          : out std_logic_vector(209 downto 0);
+            reconfig_from_xcvr        : in  std_logic_vector(137 downto 0)
         );
     end component CustomPhy_Reconf;
 
@@ -101,7 +132,7 @@ architecture top_arch of top is
 
     begin
 
-    custom_0 : CustomPhy
+    custom_1 : CustomPhy
         port  map(
             phy_mgmt_clk             => clk50,
             phy_mgmt_clk_reset       => reset,
@@ -134,7 +165,7 @@ architecture top_arch of top is
             reconfig_to_xcvr         => reconfig_to_xcvr
         );
 
-    reconf_0 : CustomPhy_Reconf
+    reconf_1 : CustomPhy_Reconf
         port map (
             reconfig_busy             => reconfig_busy,
             mgmt_clk_clk              => clk50,
@@ -148,8 +179,39 @@ architecture top_arch of top is
             reconfig_to_xcvr          => reconfig_to_xcvr,
             reconfig_from_xcvr        => reconfig_from_xcvr
         );
+
     resetDebounce_0 : Debounce
         port map(clk50, not cpu_rst_n, reset);
 
+    process(clk50, reset)
+    begin
+        if(rising_edge(clk50)) then
+            if(reset = '1') then
+                ledCount <= (others => '0');
+            else
+                ledCount <= ledCount+1;
+            end if;
+        end if;
+    end process;
+
+    USER_LED_FPGA0 <= not ledCount(26);
+
+
+    -- COMBINE SIGNALS
+    ---------------------------------------------------------------------------
+    tx_forceelecidle         <= tx_forceelecidle_CH1 & tx_forceelecidle_CH1;
+    rx_runningdisp           <= rx_runningdisp_CH1 & rx_runningdisp_CH2;
+    rx_is_lockedtoref        <= rx_is_lockedtoref_CH1 & rx_is_lockedtoref_CH2;
+    rx_is_lockedtodata       <= rx_is_lockedtodata_CH1 & rx_is_lockedtodata_CH2;
+    rx_signaldetect          <= rx_signaldetect_CH1 & rx_signaldetect_CH2;
+    rx_bitslip               <= rx_bitslip_CH1 & rx_bitslip_CH2;
+    rx_clkout                <= rx_clkout_CH1 & rx_clkout_CH2;
+    tx_parallel_data         <= tx_parallel_data_CH1 & tx_parallel_data_CH2;
+    tx_datak                 <= tx_datak_CH1 & tx_datak_CH2;
+    rx_parallel_data         <= rx_parallel_data_CH1 & rx_parallel_data_CH2;
+    rx_datak                 <= rx_datak_CH1 & rx_datak_CH2;
+
+    tx_parallel_data_CH1     <= x"01235678";
+    tx_parallel_data_CH2     <= x"ABCDEF01";
 
 end top_arch;

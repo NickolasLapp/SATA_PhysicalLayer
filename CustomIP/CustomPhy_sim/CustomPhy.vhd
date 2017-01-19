@@ -19,24 +19,24 @@ entity CustomPhy is
 		tx_ready                 : out std_logic;                                         --                 tx_ready.export
 		rx_ready                 : out std_logic;                                         --                 rx_ready.export
 		pll_ref_clk              : in  std_logic_vector(0 downto 0)   := (others => '0'); --              pll_ref_clk.clk
-		tx_serial_data           : out std_logic_vector(0 downto 0);                      --           tx_serial_data.export
-		tx_forceelecidle         : in  std_logic_vector(0 downto 0)   := (others => '0'); --         tx_forceelecidle.export
-		tx_bitslipboundaryselect : in  std_logic_vector(4 downto 0)   := (others => '0'); -- tx_bitslipboundaryselect.export
+		tx_serial_data           : out std_logic_vector(1 downto 0);                      --           tx_serial_data.export
+		tx_forceelecidle         : in  std_logic_vector(1 downto 0)   := (others => '0'); --         tx_forceelecidle.export
+		tx_bitslipboundaryselect : in  std_logic_vector(9 downto 0)   := (others => '0'); -- tx_bitslipboundaryselect.export
 		pll_locked               : out std_logic_vector(0 downto 0);                      --               pll_locked.export
-		rx_serial_data           : in  std_logic_vector(0 downto 0)   := (others => '0'); --           rx_serial_data.export
-		rx_runningdisp           : out std_logic_vector(3 downto 0);                      --           rx_runningdisp.export
-		rx_is_lockedtoref        : out std_logic_vector(0 downto 0);                      --        rx_is_lockedtoref.export
-		rx_is_lockedtodata       : out std_logic_vector(0 downto 0);                      --       rx_is_lockedtodata.export
-		rx_signaldetect          : out std_logic_vector(0 downto 0);                      --          rx_signaldetect.export
-		rx_bitslip               : in  std_logic_vector(0 downto 0)   := (others => '0'); --               rx_bitslip.export
+		rx_serial_data           : in  std_logic_vector(1 downto 0)   := (others => '0'); --           rx_serial_data.export
+		rx_runningdisp           : out std_logic_vector(7 downto 0);                      --           rx_runningdisp.export
+		rx_is_lockedtoref        : out std_logic_vector(1 downto 0);                      --        rx_is_lockedtoref.export
+		rx_is_lockedtodata       : out std_logic_vector(1 downto 0);                      --       rx_is_lockedtodata.export
+		rx_signaldetect          : out std_logic_vector(1 downto 0);                      --          rx_signaldetect.export
+		rx_bitslip               : in  std_logic_vector(1 downto 0)   := (others => '0'); --               rx_bitslip.export
 		tx_clkout                : out std_logic_vector(0 downto 0);                      --                tx_clkout.export
-		rx_clkout                : out std_logic_vector(0 downto 0);                      --                rx_clkout.export
-		tx_parallel_data         : in  std_logic_vector(31 downto 0)  := (others => '0'); --         tx_parallel_data.export
-		tx_datak                 : in  std_logic_vector(3 downto 0)   := (others => '0'); --                 tx_datak.export
-		rx_parallel_data         : out std_logic_vector(31 downto 0);                     --         rx_parallel_data.export
-		rx_datak                 : out std_logic_vector(3 downto 0);                      --                 rx_datak.export
-		reconfig_from_xcvr       : out std_logic_vector(91 downto 0);                     --       reconfig_from_xcvr.reconfig_from_xcvr
-		reconfig_to_xcvr         : in  std_logic_vector(139 downto 0) := (others => '0')  --         reconfig_to_xcvr.reconfig_to_xcvr
+		rx_clkout                : out std_logic_vector(1 downto 0);                      --                rx_clkout.export
+		tx_parallel_data         : in  std_logic_vector(63 downto 0)  := (others => '0'); --         tx_parallel_data.export
+		tx_datak                 : in  std_logic_vector(7 downto 0)   := (others => '0'); --                 tx_datak.export
+		rx_parallel_data         : out std_logic_vector(63 downto 0);                     --         rx_parallel_data.export
+		rx_datak                 : out std_logic_vector(7 downto 0);                      --                 rx_datak.export
+		reconfig_from_xcvr       : out std_logic_vector(137 downto 0);                    --       reconfig_from_xcvr.reconfig_from_xcvr
+		reconfig_to_xcvr         : in  std_logic_vector(209 downto 0) := (others => '0')  --         reconfig_to_xcvr.reconfig_to_xcvr
 	);
 end entity CustomPhy;
 
@@ -121,48 +121,48 @@ architecture rtl of CustomPhy is
 			tx_ready                    : out std_logic;                                         -- export
 			rx_ready                    : out std_logic;                                         -- export
 			pll_ref_clk                 : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- clk
-			tx_serial_data              : out std_logic_vector(0 downto 0);                      -- export
-			tx_forceelecidle            : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			tx_bitslipboundaryselect    : in  std_logic_vector(4 downto 0)   := (others => 'X'); -- export
+			tx_serial_data              : out std_logic_vector(1 downto 0);                      -- export
+			tx_forceelecidle            : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			tx_bitslipboundaryselect    : in  std_logic_vector(9 downto 0)   := (others => 'X'); -- export
 			pll_locked                  : out std_logic_vector(0 downto 0);                      -- export
-			rx_serial_data              : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			rx_runningdisp              : out std_logic_vector(3 downto 0);                      -- export
-			rx_is_lockedtoref           : out std_logic_vector(0 downto 0);                      -- export
-			rx_is_lockedtodata          : out std_logic_vector(0 downto 0);                      -- export
-			rx_signaldetect             : out std_logic_vector(0 downto 0);                      -- export
-			rx_bitslip                  : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			rx_serial_data              : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			rx_runningdisp              : out std_logic_vector(7 downto 0);                      -- export
+			rx_is_lockedtoref           : out std_logic_vector(1 downto 0);                      -- export
+			rx_is_lockedtodata          : out std_logic_vector(1 downto 0);                      -- export
+			rx_signaldetect             : out std_logic_vector(1 downto 0);                      -- export
+			rx_bitslip                  : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
 			tx_clkout                   : out std_logic_vector(0 downto 0);                      -- export
-			rx_clkout                   : out std_logic_vector(0 downto 0);                      -- export
-			tx_parallel_data            : in  std_logic_vector(31 downto 0)  := (others => 'X'); -- export
-			tx_datak                    : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- export
-			rx_parallel_data            : out std_logic_vector(31 downto 0);                     -- export
-			rx_datak                    : out std_logic_vector(3 downto 0);                      -- export
-			reconfig_from_xcvr          : out std_logic_vector(91 downto 0);                     -- reconfig_from_xcvr
-			reconfig_to_xcvr            : in  std_logic_vector(139 downto 0) := (others => 'X'); -- reconfig_to_xcvr
-			rx_disperr                  : out std_logic_vector(3 downto 0);                      -- export
-			rx_errdetect                : out std_logic_vector(3 downto 0);                      -- export
-			rx_patterndetect            : out std_logic_vector(3 downto 0);                      -- export
-			rx_syncstatus               : out std_logic_vector(3 downto 0);                      -- export
-			rx_bitslipboundaryselectout : out std_logic_vector(4 downto 0);                      -- export
-			rx_enabyteord               : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			rx_rmfifodatainserted       : out std_logic_vector(3 downto 0);                      -- export
-			rx_rmfifodatadeleted        : out std_logic_vector(3 downto 0);                      -- export
-			rx_rlv                      : out std_logic_vector(0 downto 0);                      -- export
-			rx_byteordflag              : out std_logic_vector(0 downto 0);                      -- export
-			tx_coreclkin                : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			rx_coreclkin                : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			rx_recovered_clk            : out std_logic_vector(0 downto 0);                      -- export
+			rx_clkout                   : out std_logic_vector(1 downto 0);                      -- export
+			tx_parallel_data            : in  std_logic_vector(63 downto 0)  := (others => 'X'); -- export
+			tx_datak                    : in  std_logic_vector(7 downto 0)   := (others => 'X'); -- export
+			rx_parallel_data            : out std_logic_vector(63 downto 0);                     -- export
+			rx_datak                    : out std_logic_vector(7 downto 0);                      -- export
+			reconfig_from_xcvr          : out std_logic_vector(137 downto 0);                    -- reconfig_from_xcvr
+			reconfig_to_xcvr            : in  std_logic_vector(209 downto 0) := (others => 'X'); -- reconfig_to_xcvr
+			rx_disperr                  : out std_logic_vector(7 downto 0);                      -- export
+			rx_errdetect                : out std_logic_vector(7 downto 0);                      -- export
+			rx_patterndetect            : out std_logic_vector(7 downto 0);                      -- export
+			rx_syncstatus               : out std_logic_vector(7 downto 0);                      -- export
+			rx_bitslipboundaryselectout : out std_logic_vector(9 downto 0);                      -- export
+			rx_enabyteord               : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			rx_rmfifodatainserted       : out std_logic_vector(7 downto 0);                      -- export
+			rx_rmfifodatadeleted        : out std_logic_vector(7 downto 0);                      -- export
+			rx_rlv                      : out std_logic_vector(1 downto 0);                      -- export
+			rx_byteordflag              : out std_logic_vector(1 downto 0);                      -- export
+			tx_coreclkin                : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			rx_coreclkin                : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			rx_recovered_clk            : out std_logic_vector(1 downto 0);                      -- export
 			cdr_ref_clk                 : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			tx_dispval                  : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- export
-			tx_forcedisp                : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- export
+			tx_dispval                  : in  std_logic_vector(7 downto 0)   := (others => 'X'); -- export
+			tx_forcedisp                : in  std_logic_vector(7 downto 0)   := (others => 'X'); -- export
 			pll_powerdown               : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			tx_digitalreset             : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			tx_analogreset              : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			tx_cal_busy                 : out std_logic_vector(0 downto 0);                      -- export
-			rx_digitalreset             : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			rx_analogreset              : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			rx_cal_busy                 : out std_logic_vector(0 downto 0);                      -- export
-			ext_pll_clk                 : in  std_logic_vector(0 downto 0)   := (others => 'X')  -- export
+			tx_digitalreset             : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			tx_analogreset              : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			tx_cal_busy                 : out std_logic_vector(1 downto 0);                      -- export
+			rx_digitalreset             : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			rx_analogreset              : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			rx_cal_busy                 : out std_logic_vector(1 downto 0);                      -- export
+			ext_pll_clk                 : in  std_logic_vector(1 downto 0)   := (others => 'X')  -- export
 		);
 	end component altera_xcvr_custom;
 
@@ -173,10 +173,10 @@ begin
 			device_family                         => "Cyclone V",
 			protocol_hint                         => "basic",
 			operation_mode                        => "Duplex",
-			lanes                                 => 1,
-			bonded_group_size                     => 1,
+			lanes                                 => 2,
+			bonded_group_size                     => 2,
 			bonded_mode                           => "xN",
-			pma_bonding_mode                      => "x1",
+			pma_bonding_mode                      => "xN",
 			pcs_pma_width                         => 20,
 			ser_base_factor                       => 8,
 			ser_words                             => 4,
@@ -271,25 +271,25 @@ begin
 			rx_patterndetect            => open,                     --              (terminated)
 			rx_syncstatus               => open,                     --              (terminated)
 			rx_bitslipboundaryselectout => open,                     --              (terminated)
-			rx_enabyteord               => "0",                      --              (terminated)
+			rx_enabyteord               => "00",                     --              (terminated)
 			rx_rmfifodatainserted       => open,                     --              (terminated)
 			rx_rmfifodatadeleted        => open,                     --              (terminated)
 			rx_rlv                      => open,                     --              (terminated)
 			rx_byteordflag              => open,                     --              (terminated)
-			tx_coreclkin                => "0",                      --              (terminated)
-			rx_coreclkin                => "0",                      --              (terminated)
+			tx_coreclkin                => "00",                     --              (terminated)
+			rx_coreclkin                => "00",                     --              (terminated)
 			rx_recovered_clk            => open,                     --              (terminated)
 			cdr_ref_clk                 => "0",                      --              (terminated)
-			tx_dispval                  => "0000",                   --              (terminated)
-			tx_forcedisp                => "0000",                   --              (terminated)
+			tx_dispval                  => "00000000",               --              (terminated)
+			tx_forcedisp                => "00000000",               --              (terminated)
 			pll_powerdown               => "0",                      --              (terminated)
-			tx_digitalreset             => "0",                      --              (terminated)
-			tx_analogreset              => "0",                      --              (terminated)
+			tx_digitalreset             => "00",                     --              (terminated)
+			tx_analogreset              => "00",                     --              (terminated)
 			tx_cal_busy                 => open,                     --              (terminated)
-			rx_digitalreset             => "0",                      --              (terminated)
-			rx_analogreset              => "0",                      --              (terminated)
+			rx_digitalreset             => "00",                     --              (terminated)
+			rx_analogreset              => "00",                     --              (terminated)
 			rx_cal_busy                 => open,                     --              (terminated)
-			ext_pll_clk                 => "0"                       --              (terminated)
+			ext_pll_clk                 => "00"                      --              (terminated)
 		);
 
 end architecture rtl; -- of CustomPhy

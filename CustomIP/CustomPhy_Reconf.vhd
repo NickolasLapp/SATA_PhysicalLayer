@@ -19,8 +19,8 @@ entity CustomPhy_Reconf is
 		reconfig_mgmt_waitrequest : out std_logic;                                         --                   .waitrequest
 		reconfig_mgmt_write       : in  std_logic                      := '0';             --                   .write
 		reconfig_mgmt_writedata   : in  std_logic_vector(31 downto 0)  := (others => '0'); --                   .writedata
-		reconfig_to_xcvr          : out std_logic_vector(139 downto 0);                    --   reconfig_to_xcvr.reconfig_to_xcvr
-		reconfig_from_xcvr        : in  std_logic_vector(91 downto 0)  := (others => '0')  -- reconfig_from_xcvr.reconfig_from_xcvr
+		reconfig_to_xcvr          : out std_logic_vector(209 downto 0);                    --   reconfig_to_xcvr.reconfig_to_xcvr
+		reconfig_from_xcvr        : in  std_logic_vector(137 downto 0) := (others => '0')  -- reconfig_from_xcvr.reconfig_from_xcvr
 	);
 end entity CustomPhy_Reconf;
 
@@ -51,8 +51,8 @@ architecture rtl of CustomPhy_Reconf is
 			reconfig_mgmt_waitrequest : out std_logic;                                         -- waitrequest
 			reconfig_mgmt_write       : in  std_logic                      := 'X';             -- write
 			reconfig_mgmt_writedata   : in  std_logic_vector(31 downto 0)  := (others => 'X'); -- writedata
-			reconfig_to_xcvr          : out std_logic_vector(139 downto 0);                    -- reconfig_to_xcvr
-			reconfig_from_xcvr        : in  std_logic_vector(91 downto 0)  := (others => 'X'); -- reconfig_from_xcvr
+			reconfig_to_xcvr          : out std_logic_vector(209 downto 0);                    -- reconfig_to_xcvr
+			reconfig_from_xcvr        : in  std_logic_vector(137 downto 0) := (others => 'X'); -- reconfig_from_xcvr
 			tx_cal_busy               : out std_logic;                                         -- tx_cal_busy
 			rx_cal_busy               : out std_logic;                                         -- tx_cal_busy
 			cal_busy_in               : in  std_logic                      := 'X';             -- cal_busy_in
@@ -68,7 +68,7 @@ begin
 	customphy_reconf_inst : component alt_xcvr_reconfig
 		generic map (
 			device_family                 => "Cyclone V",
-			number_of_reconfig_interfaces => 2,
+			number_of_reconfig_interfaces => 3,
 			enable_offset                 => 1,
 			enable_lc                     => 0,
 			enable_dcd                    => 0,
@@ -131,7 +131,7 @@ end architecture rtl; -- of CustomPhy_Reconf
 ---->
 -- Retrieval info: <instance entity-name="alt_xcvr_reconfig" version="15.1" >
 -- Retrieval info: 	<generic name="device_family" value="Cyclone V" />
--- Retrieval info: 	<generic name="number_of_reconfig_interfaces" value="2" />
+-- Retrieval info: 	<generic name="number_of_reconfig_interfaces" value="3" />
 -- Retrieval info: 	<generic name="gui_split_sizes" value="" />
 -- Retrieval info: 	<generic name="enable_offset" value="1" />
 -- Retrieval info: 	<generic name="enable_dcd" value="0" />

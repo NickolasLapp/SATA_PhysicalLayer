@@ -69,8 +69,8 @@ agreement for further details.
 	(port
 		(pt 0 272)
 		(input)
-		(text "reconfig_from_xcvr[91..0]" (rect 0 0 106 12)(font "Arial" (font_size 8)))
-		(text "reconfig_from_xcvr[91..0]" (rect 4 261 154 272)(font "Arial" (font_size 8)))
+		(text "reconfig_from_xcvr[137..0]" (rect 0 0 110 12)(font "Arial" (font_size 8)))
+		(text "reconfig_from_xcvr[137..0]" (rect 4 261 160 272)(font "Arial" (font_size 8)))
 		(line (pt 0 272)(pt 176 272)(line_width 3))
 	)
 	(port
@@ -97,8 +97,8 @@ agreement for further details.
 	(port
 		(pt 544 112)
 		(output)
-		(text "reconfig_to_xcvr[139..0]" (rect 0 0 97 12)(font "Arial" (font_size 8)))
-		(text "reconfig_to_xcvr[139..0]" (rect 422 101 566 112)(font "Arial" (font_size 8)))
+		(text "reconfig_to_xcvr[209..0]" (rect 0 0 99 12)(font "Arial" (font_size 8)))
+		(text "reconfig_to_xcvr[209..0]" (rect 420 101 564 112)(font "Arial" (font_size 8)))
 		(line (pt 544 112)(pt 368 112)(line_width 3))
 	)
 	(drawing
