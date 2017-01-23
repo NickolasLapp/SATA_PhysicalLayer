@@ -18,8 +18,17 @@ entity top is
 END top;
 
 architecture top_arch of top is
+
+
+--    constant ALIGNp : std_logic_vector(31 downto 0) :=  x"7B4A4ABC";
+    constant ALIGNp : std_logic_vector(31 downto 0) :=  x"BCBCBCBC";
+
     signal reset : std_logic;
-    signal ledCount                 : std_logic_vector(64 downto 0);
+    signal ledCount         : std_logic_vector(63 downto 0);
+
+
+    signal bitslip_wait_CH1 : std_logic_vector(63 downto 0) := (others => '0');
+    signal bitslip_wait_CH2 : std_logic_vector(63 downto 0) := (others => '0');
 
 
     -- Channel Specific Settings
@@ -30,11 +39,11 @@ architecture top_arch of top is
     signal rx_is_lockedtoref_CH1        : std_logic;
     signal rx_is_lockedtodata_CH1       : std_logic;
     signal rx_signaldetect_CH1          : std_logic;
-    signal rx_bitslip_CH1               : std_logic;
-    signal rx_clkout_CH1                : std_logic;
-    signal tx_parallel_data_CH1         : std_logic_vector(31 downto 0);
+    signal rx_bitslip_CH1               : std_logic := '0';
+    signal rx_clkout_CH1                : std_logic := '0';
     signal tx_datak_CH1                 : std_logic_vector(3 downto 0)   := (others => '0');
     signal rx_parallel_data_CH1         : std_logic_vector(31 downto 0);
+    signal tx_parallel_data_CH1         : std_logic_vector(31 downto 0);
     signal rx_datak_CH1                 : std_logic_vector(3 downto 0);
 
     -- CH2
@@ -45,9 +54,9 @@ architecture top_arch of top is
     signal rx_signaldetect_CH2          : std_logic;
     signal rx_bitslip_CH2               : std_logic;
     signal rx_clkout_CH2                : std_logic;
-    signal tx_parallel_data_CH2         : std_logic_vector(31 downto 0);
     signal tx_datak_CH2                 : std_logic_vector(3 downto 0)   := (others => '0');
     signal rx_parallel_data_CH2         : std_logic_vector(31 downto 0);
+    signal tx_parallel_data_CH2         : std_logic_vector(31 downto 0);
     signal rx_datak_CH2                 : std_logic_vector(3 downto 0);
 
     -- Channel Combined
@@ -194,7 +203,7 @@ architecture top_arch of top is
         end if;
     end process;
 
-    USER_LED_FPGA0 <= not ledCount(26);
+    USER_LED_FPGA0 <= not ledCount(26) or bitslip_wait_CH1(63);
 
 
     -- COMBINE SIGNALS
@@ -211,7 +220,54 @@ architecture top_arch of top is
     rx_parallel_data         <= rx_parallel_data_CH1 & rx_parallel_data_CH2;
     rx_datak                 <= rx_datak_CH1 & rx_datak_CH2;
 
-    tx_parallel_data_CH1     <= x"BC41417B";
-    tx_parallel_data_CH2     <= x"BC41417B";
+    tx_parallel_data_CH1     <= ALIGNp;
+    tx_parallel_data_CH2     <= ALIGNp;
 
+    process(rx_clkout_CH1, reset)
+	begin
+	    if(rising_edge(rx_clkout_CH1)) then
+            if(reset = '1') then
+                bitslip_wait_CH1 <= (others => '0');
+            else
+                if(not rx_parallel_data_CH1 = ALIGNp) then
+                    if(bitslip_wait_CH1 > 60) then
+                        rx_bitslip_CH1 <= '0';
+                        bitslip_wait_CH1 <= (others => '0');
+                    elsif(bitslip_wait_CH1 > 50) then
+                        rx_bitslip_CH1 <= '1';
+                        bitslip_wait_CH1 <= bitslip_wait_CH1 + 1;
+                    else
+                        rx_bitslip_CH1 <= '0';
+                        bitslip_wait_CH1 <= bitslip_wait_CH1 + 1;
+                    end if;
+                else
+                    rx_bitslip_CH1 <= '0';
+                end if;
+           end if;
+        end if;
+    end process;
+
+	process(rx_clkout_CH2, reset)
+    begin
+        if(rising_edge(rx_clkout_CH2)) then
+            if(reset = '1') then
+                bitslip_wait_CH2 <= (others => '0');
+            else
+                if(not rx_parallel_data_CH2 = ALIGNp) then
+                    if(bitslip_wait_CH2 > 60) then
+                        bitslip_wait_CH2 <= (others => '0');
+                        rx_bitslip_CH2 <= '0';
+                    elsif(bitslip_wait_CH2 > 50) then
+                        rx_bitslip_CH2 <= '1';
+                        bitslip_wait_CH2 <= bitslip_wait_CH2 + 1;
+                    else
+                        rx_bitslip_CH2 <= '0';
+                        bitslip_wait_CH2 <= bitslip_wait_CH2 + 1;
+                    end if;
+                else
+                    rx_bitslip_CH2 <= '0';
+                end if;
+            end if;
+        end if;
+    end process;
 end top_arch;
