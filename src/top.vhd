@@ -1,6 +1,7 @@
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.ALL;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity top is
     port(
@@ -20,8 +21,8 @@ END top;
 architecture top_arch of top is
 
 
---    constant ALIGNp : std_logic_vector(31 downto 0) :=  x"7B4A4ABC";
-    constant ALIGNp : std_logic_vector(31 downto 0) :=  x"BCBCBCBC";
+    constant ALIGNp : std_logic_vector(31 downto 0) :=  x"7B4A4ABC";
+ --   constant ALIGNp : std_logic_vector(31 downto 0) :=  x"BCBCBCBC";
 
     signal reset : std_logic;
     signal ledCount         : std_logic_vector(63 downto 0);
@@ -203,33 +204,50 @@ architecture top_arch of top is
         end if;
     end process;
 
-    USER_LED_FPGA0 <= not ledCount(26) or bitslip_wait_CH1(63);
+    USER_LED_FPGA0 <= '1' when (ledCount(26) = '0' or ALIGNp = ALIGNp);
 
 
-    -- COMBINE SIGNALS
+    -- COMBINE INPUT SIGNALS
     ---------------------------------------------------------------------------
-    tx_forceelecidle         <= tx_forceelecidle_CH1 & tx_forceelecidle_CH1;
-    rx_runningdisp           <= rx_runningdisp_CH1 & rx_runningdisp_CH2;
-    rx_is_lockedtoref        <= rx_is_lockedtoref_CH1 & rx_is_lockedtoref_CH2;
-    rx_is_lockedtodata       <= rx_is_lockedtodata_CH1 & rx_is_lockedtodata_CH2;
-    rx_signaldetect          <= rx_signaldetect_CH1 & rx_signaldetect_CH2;
-    rx_bitslip               <= rx_bitslip_CH1 & rx_bitslip_CH2;
-    rx_clkout                <= rx_clkout_CH1 & rx_clkout_CH2;
-    tx_parallel_data         <= tx_parallel_data_CH1 & tx_parallel_data_CH2;
-    tx_datak                 <= tx_datak_CH1 & tx_datak_CH2;
-    rx_parallel_data         <= rx_parallel_data_CH1 & rx_parallel_data_CH2;
-    rx_datak                 <= rx_datak_CH1 & rx_datak_CH2;
+    tx_forceelecidle         <= tx_forceelecidle_CH2 & tx_forceelecidle_CH1;
+    tx_parallel_data         <= tx_parallel_data_CH2 & tx_parallel_data_CH1;
+    tx_datak                 <= tx_datak_CH2 & tx_datak_CH1;
+    rx_bitslip               <= rx_bitslip_CH2 & rx_bitslip_CH1;
+
+    -- SPLIT OUTPUT SIGNALS
+    ---------------------------------------------------------------------------
+    rx_runningdisp_CH1 <= rx_runningdisp(3 downto 0);
+    rx_runningdisp_CH2 <= rx_runningdisp(7 downto 4);
+
+    rx_parallel_data_CH1     <= rx_parallel_data(31 downto 0);
+    rx_parallel_data_CH2     <= rx_parallel_data(63 downto 32);
+
+    rx_datak_CH1             <= rx_datak(3 downto 0);
+    rx_datak_CH2             <= rx_datak(7 downto 4);
+
+    rx_clkout_CH1            <= rx_clkout(0);
+    rx_clkout_CH2            <= rx_clkout(1);
+
+    rx_is_lockedtoref_CH1    <= rx_is_lockedtoref(0);
+    rx_is_lockedtoref_CH2    <= rx_is_lockedtoref(1);
+
+    rx_is_lockedtodata_CH1    <= rx_is_lockedtodata(0);
+    rx_is_lockedtodata_CH2    <= rx_is_lockedtodata(1);
 
     tx_parallel_data_CH1     <= ALIGNp;
     tx_parallel_data_CH2     <= ALIGNp;
 
-    process(rx_clkout_CH1, reset)
+    rx_signaldetect_CH1      <= rx_signaldetect(0);
+    rx_signaldetect_CH2      <= rx_signaldetect(1);
+
+
+    process(rx_clkout(0), reset)
 	begin
-	    if(rising_edge(rx_clkout_CH1)) then
+	    if(rising_edge(rx_clkout(0))) then
             if(reset = '1') then
                 bitslip_wait_CH1 <= (others => '0');
             else
-                if(not rx_parallel_data_CH1 = ALIGNp) then
+                if(rx_parallel_data_CH1 /= ALIGNp) then
                     if(bitslip_wait_CH1 > 60) then
                         rx_bitslip_CH1 <= '0';
                         bitslip_wait_CH1 <= (others => '0');
@@ -247,13 +265,13 @@ architecture top_arch of top is
         end if;
     end process;
 
-	process(rx_clkout_CH2, reset)
+	process(rx_clkout(1), reset)
     begin
-        if(rising_edge(rx_clkout_CH2)) then
+        if(rising_edge(rx_clkout(1))) then
             if(reset = '1') then
                 bitslip_wait_CH2 <= (others => '0');
             else
-                if(not rx_parallel_data_CH2 = ALIGNp) then
+                if(rx_parallel_data_CH2 /= ALIGNp) then
                     if(bitslip_wait_CH2 > 60) then
                         bitslip_wait_CH2 <= (others => '0');
                         rx_bitslip_CH2 <= '0';
