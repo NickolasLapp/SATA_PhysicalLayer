@@ -3,6 +3,8 @@ use ieee.std_logic_1164.ALL;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
+use work.sata_defines.all;
+
 entity top is
     port(
         clk50 : in std_logic;           -- 50 MHz clock from AC18, driven by SL18860C
@@ -19,12 +21,8 @@ entity top is
 END top;
 
 architecture top_arch of top is
-
-
-    constant ALIGNp : std_logic_vector(31 downto 0) :=  x"7B4A4ABC";
- --   constant ALIGNp : std_logic_vector(31 downto 0) :=  x"BCBCBCBC";
-
-    signal reset : std_logic;
+    signal reset            : std_logic;
+    signal cpu_rst          : std_logic;
     signal ledCount         : std_logic_vector(63 downto 0);
 
 
@@ -82,6 +80,29 @@ architecture top_arch of top is
     signal reconfig_from_xcvr       : std_logic_vector(137 downto 0);
     signal reconfig_to_xcvr         : std_logic_vector(209 downto 0);
     signal reconfig_busy            : std_logic;
+
+    signal oobSignalToSend          : OOB_SIGNAL;
+    signal readyForNewSignal        : std_logic;
+    signal oobSignalReceived        : OOB_SIGNAL;
+
+
+    component OOB_SignalDetect is
+      port(
+        rxclkout         : in  std_logic;
+        reset            : in  std_logic;
+
+        rx_parallel_data : in  std_logic_vector(31 downto 0);
+        rx_signaldetect  : in  std_logic;
+
+        oobSignalToSend  : in  OOB_SIGNAL;
+        readyForNewSignal: out std_logic;
+
+        oobSignalReceived: out OOB_SIGNAL;
+
+        tx_forceelecidle : out std_logic;
+        tx_parallel_data : out std_logic_vector(31 downto 0)
+        );
+    end component OOB_SignalDetect;
 
     component CustomPhy is
         port (
@@ -142,6 +163,22 @@ architecture top_arch of top is
 
     begin
 
+    signalDetect1 : OOB_SignalDetect
+        port map(
+            rxclkout            => rx_clkout_CH1,
+            reset               => reset,
+
+            rx_parallel_data    => rx_parallel_data_CH1,
+            rx_signaldetect     => rx_signaldetect_CH1,
+
+            oobSignalToSend     => oobSignalToSend,
+            readyForNewSignal   => readyForNewSignal,
+
+            oobSignalReceived   => oobSignalReceived,
+            tx_forceelecidle    => tx_forceelecidle_CH1,
+            tx_parallel_data    => tx_parallel_data_CH1
+        );
+
     custom_1 : CustomPhy
         port  map(
             phy_mgmt_clk             => clk50,
@@ -190,8 +227,9 @@ architecture top_arch of top is
             reconfig_from_xcvr        => reconfig_from_xcvr
         );
 
+    cpu_rst <= not cpu_rst_n;
     resetDebounce_0 : Debounce
-        port map(clk50, not cpu_rst_n, reset);
+        port map(clk50, cpu_rst, reset);
 
     process(clk50, reset)
     begin
@@ -234,58 +272,60 @@ architecture top_arch of top is
     rx_is_lockedtodata_CH1    <= rx_is_lockedtodata(0);
     rx_is_lockedtodata_CH2    <= rx_is_lockedtodata(1);
 
-    tx_parallel_data_CH1     <= ALIGNp;
+--    tx_parallel_data_CH1     <= ALIGNp;
     tx_parallel_data_CH2     <= ALIGNp;
 
     rx_signaldetect_CH1      <= rx_signaldetect(0);
     rx_signaldetect_CH2      <= rx_signaldetect(1);
 
+    oobSignalToSend          <= COMWAKE;
 
-    process(rx_clkout(0), reset)
-	begin
-	    if(rising_edge(rx_clkout(0))) then
-            if(reset = '1') then
-                bitslip_wait_CH1 <= (others => '0');
-            else
-                if(rx_parallel_data_CH1 /= ALIGNp) then
-                    if(bitslip_wait_CH1 > 60) then
-                        rx_bitslip_CH1 <= '0';
-                        bitslip_wait_CH1 <= (others => '0');
-                    elsif(bitslip_wait_CH1 > 50) then
-                        rx_bitslip_CH1 <= '1';
-                        bitslip_wait_CH1 <= bitslip_wait_CH1 + 1;
-                    else
-                        rx_bitslip_CH1 <= '0';
-                        bitslip_wait_CH1 <= bitslip_wait_CH1 + 1;
-                    end if;
-                else
-                    rx_bitslip_CH1 <= '0';
-                end if;
-           end if;
-        end if;
-    end process;
 
-	process(rx_clkout(1), reset)
-    begin
-        if(rising_edge(rx_clkout(1))) then
-            if(reset = '1') then
-                bitslip_wait_CH2 <= (others => '0');
-            else
-                if(rx_parallel_data_CH2 /= ALIGNp) then
-                    if(bitslip_wait_CH2 > 60) then
-                        bitslip_wait_CH2 <= (others => '0');
-                        rx_bitslip_CH2 <= '0';
-                    elsif(bitslip_wait_CH2 > 50) then
-                        rx_bitslip_CH2 <= '1';
-                        bitslip_wait_CH2 <= bitslip_wait_CH2 + 1;
-                    else
-                        rx_bitslip_CH2 <= '0';
-                        bitslip_wait_CH2 <= bitslip_wait_CH2 + 1;
-                    end if;
-                else
-                    rx_bitslip_CH2 <= '0';
-                end if;
-            end if;
-        end if;
-    end process;
+ --   process(rx_clkout(0), reset)
+ --   begin
+ --   if(rising_edge(rx_clkout(0))) then
+ --           if(reset = '1') then
+ --               bitslip_wait_CH1 <= (others => '0');
+ --           else
+ --               if(rx_parallel_data_CH1 /= ALIGNp) then
+ --                   if(bitslip_wait_CH1 > 60) then
+ --                       rx_bitslip_CH1 <= '0';
+ --                       bitslip_wait_CH1 <= (others => '0');
+ --                   elsif(bitslip_wait_CH1 > 50) then
+ --                       rx_bitslip_CH1 <= '1';
+ --                       bitslip_wait_CH1 <= bitslip_wait_CH1 + 1;
+ --                   else
+ --                       rx_bitslip_CH1 <= '0';
+ --                       bitslip_wait_CH1 <= bitslip_wait_CH1 + 1;
+ --                   end if;
+ --               else
+ --                   rx_bitslip_CH1 <= '0';
+ --               end if;
+ --          end if;
+ --       end if;
+ --   end process;
+
+ --   process(rx_clkout(1), reset)
+ --   begin
+ --       if(rising_edge(rx_clkout(1))) then
+ --           if(reset = '1') then
+ --               bitslip_wait_CH2 <= (others => '0');
+ --           else
+ --               if(rx_parallel_data_CH2 /= ALIGNp) then
+ --                   if(bitslip_wait_CH2 > 60) then
+ --                       bitslip_wait_CH2 <= (others => '0');
+ --                       rx_bitslip_CH2 <= '0';
+ --                   elsif(bitslip_wait_CH2 > 50) then
+ --                       rx_bitslip_CH2 <= '1';
+ --                       bitslip_wait_CH2 <= bitslip_wait_CH2 + 1;
+ --                   else
+ --                       rx_bitslip_CH2 <= '0';
+ --                       bitslip_wait_CH2 <= bitslip_wait_CH2 + 1;
+ --                   end if;
+ --               else
+ --                   rx_bitslip_CH2 <= '0';
+ --               end if;
+ --           end if;
+ --       end if;
+ --   end process;
 end top_arch;
