@@ -280,7 +280,7 @@ architecture top_arch of top is
 
     oobSignalToSend          <= COMWAKE;
 
-
+    tx_forceelecidle_CH2 <= '1';
  --   process(rx_clkout(0), reset)
  --   begin
  --   if(rising_edge(rx_clkout(0))) then

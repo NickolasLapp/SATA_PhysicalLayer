@@ -35,7 +35,7 @@ package sata_defines is
     -- constants
     constant CHARS_PER_WORD           : integer     := 40;
 
-    constant TRANSMIT_PULSE_CHARS     : integer     := 160;
+   constant TRANSMIT_PULSE_CHARS     : integer     := 160;
     constant TRANSMIT_PULSE_COUNT     : integer     := TRANSMIT_PULSE_CHARS / CHARS_PER_WORD;
 
     constant COMRESET_PAUSE_CHARS     : integer     := 480;

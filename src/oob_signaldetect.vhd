@@ -83,7 +83,7 @@ begin
                     else -- pause just finished
                         if(UICountRecvd = COMINIT_PAUSE_COUNT) then
                             if(receivingSignal = NONE or receivingSignal = COMINIT) then
-                                pulsesRecvd <= pulsesRecvd + 1;
+                                pausesRecvd <= pausesRecvd + 1;
                                 receivingSignal <= COMINIT;
                             else
                                 receivingSignal <= NONE;
@@ -93,7 +93,7 @@ begin
                             end if;
                         elsif(UICountRecvd = COMWAKE_PAUSE_COUNT) then
                             if(receivingSignal = NONE or receivingSignal = COMWAKE) then
-                                pulsesRecvd <= pulsesRecvd + 1;
+                                pausesRecvd <= pausesRecvd + 1;
                                 receivingSignal <= COMWAKE;
                             else
                                 receivingSignal <= NONE;
@@ -139,10 +139,10 @@ begin
                     when SEND_PAUSE =>
                         if(UICountSent = COMWAKE_PAUSE_COUNT and sendingSignal = COMWAKE) then
                             UICountSent <= (others => '0');
-                            pausesSent => pausesSent + 1;
+                            pausesSent <= pausesSent + 1;
                         elsif(UICountSent = COMRESET_PAUSE_COUNT and sendingSignal = COMRESET) then
                             UICountSent <= (others => '0');
-                            pausesSent => pausesSent + 1;
+                            pausesSent <= pausesSent + 1;
                         else
                             UICountSent <= UICountSent + 1;
                         end if;
@@ -161,7 +161,7 @@ begin
 
 
     -- Next State Logic
-    process(UICountSent, pausesSent, pausesRecvd, oobSignalToSend)
+    process(UICountSent, pausesSent, pausesRecvd, oobSignalToSend, txState, sendingSignal)
     begin
         case(txState) is
             when IDLE =>
