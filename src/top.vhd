@@ -81,31 +81,7 @@ architecture top_arch of top is
     signal reconfig_to_xcvr         : std_logic_vector(209 downto 0);
     signal reconfig_busy            : std_logic;
 
-    signal oobSignalToSend          : OOB_SIGNAL;
-    signal readyForNewSignal        : std_logic;
-    signal oobSignalReceived        : OOB_SIGNAL;
-    signal oobRxIdle            : std_logic;
-
-
-    component OOB_SignalDetect is
-      port(
-        rxclkout         : in  std_logic;
-        txclkout         : in  std_logic;
-        reset            : in  std_logic;
-
-        rx_parallel_data : in  std_logic_vector(31 downto 0);
-        rx_signaldetect  : in  std_logic;
-
-        oobSignalToSend  : in  OOB_SIGNAL;
-        readyForNewSignal: out std_logic;
-        oobRxIdle    : out std_logic;
-
-        oobSignalReceived: out OOB_SIGNAL;
-
-        tx_forceelecidle : out std_logic;
-        tx_parallel_data : out std_logic_vector(31 downto 0)
-        );
-    end component OOB_SignalDetect;
+    signal PHYRDY                   : std_logic;
 
     component CustomPhy is
         port (
@@ -157,6 +133,24 @@ architecture top_arch of top is
         );
     end component CustomPhy_Reconf;
 
+    component PhyLayerInit is
+        port(
+            rxclkout         : in  std_logic;
+            txclkout         : in  std_logic;
+            reset            : in  std_logic;
+
+            rx_parallel_data : in  std_logic_vector(31 downto 0);
+            rx_signaldetect  : in  std_logic;
+
+            tx_forceelecidle : out std_logic;
+            tx_parallel_data : out std_logic_vector(31 downto 0);
+
+            rx_bitslip       : out std_logic;
+
+            PHYRDY         : out std_logic
+        );
+    end component PhyLayerInit;
+
     component Debounce is
       port(
         clk50      : in  std_logic;
@@ -166,22 +160,20 @@ architecture top_arch of top is
 
     begin
 
-    signalDetect1 : OOB_SignalDetect
+    phyLayerInit1 : PhyLayerInit
         port map(
-            rxclkout            => rx_clkout_CH1,
-            txclkout            => tx_clkout,
-            reset               => reset,
+            rxclkout         => rx_clkout_CH1,
+            txclkout         => tx_clkout,
+            reset            => reset,
 
-            rx_parallel_data    => rx_parallel_data_CH1,
-            rx_signaldetect     => rx_signaldetect_CH1,
+            rx_parallel_data => rx_parallel_data_CH1,
+            rx_signaldetect  => rx_signaldetect_CH1,
 
-            oobSignalToSend     => oobSignalToSend,
-            readyForNewSignal   => readyForNewSignal,
-            oobRxIdle       => oobRxIdle,
+            tx_forceelecidle => tx_forceelecidle_CH1,
+            tx_parallel_data => tx_parallel_data_CH1,
 
-            oobSignalReceived   => oobSignalReceived,
-            tx_forceelecidle    => tx_forceelecidle_CH1,
-            tx_parallel_data    => tx_parallel_data_CH1
+            rx_bitslip       => rx_bitslip_CH1,
+            PHYRDY           => PHYRDY
         );
 
     custom_1 : CustomPhy
@@ -247,7 +239,7 @@ architecture top_arch of top is
         end if;
     end process;
 
-    USER_LED_FPGA0 <= '1' when (ledCount(26) = '0' or ALIGNp = ALIGNp);
+    USER_LED_FPGA0 <= '1' when PHYRDY = '1' else '0';
 
 
     -- COMBINE INPUT SIGNALS
@@ -283,24 +275,10 @@ architecture top_arch of top is
     rx_signaldetect_CH1      <= rx_signaldetect(0);
     rx_signaldetect_CH2      <= rx_signaldetect(1);
 
-    process(tx_clkout, reset)
-    begin
-        if(rising_edge(tx_clkout)) then
-            if(reset = '1') then
-                oobSignalToSend          <= COMWAKE;
-            else
-                if(readyForNewSignal = '1') then
-                    if(oobSignalToSend = COMWAKE) then
-                        oobSignalToSend <= COMRESET;
-                    else
-                        oobSignalToSend <= COMWAKE;
-                    end if;
-                end if;
-            end if;
-        end if;
-    end process;
 
     tx_forceelecidle_CH2 <= '1';
+
+
  --   process(rx_clkout(0), reset)
  --   begin
  --   if(rising_edge(rx_clkout(0))) then

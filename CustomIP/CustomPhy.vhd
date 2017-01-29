@@ -196,8 +196,8 @@ begin
 			word_aligner_state_machine_datacnt    => 1,
 			word_aligner_state_machine_errcnt     => 1,
 			word_aligner_state_machine_patterncnt => 10,
-			word_aligner_pattern_length           => 16,
-			word_align_pattern                    => "1111100111111111",
+			word_aligner_pattern_length           => 10,
+			word_align_pattern                    => "0101111100",
 			run_length_violation_checking         => 40,
 			use_rate_match_fifo                   => 0,
 			rate_match_pattern1                   => "11010000111010000011",
@@ -351,8 +351,8 @@ end architecture rtl; -- of CustomPhy
 -- Retrieval info: 	<generic name="word_aligner_state_machine_errcnt" value="1" />
 -- Retrieval info: 	<generic name="word_aligner_state_machine_patterncnt" value="10" />
 -- Retrieval info: 	<generic name="gui_use_wa_status" value="false" />
--- Retrieval info: 	<generic name="word_aligner_pattern_length" value="16" />
--- Retrieval info: 	<generic name="word_align_pattern" value="1111100111111111" />
+-- Retrieval info: 	<generic name="word_aligner_pattern_length" value="10" />
+-- Retrieval info: 	<generic name="word_align_pattern" value="0101111100" />
 -- Retrieval info: 	<generic name="gui_enable_run_length" value="false" />
 -- Retrieval info: 	<generic name="run_length_violation_checking" value="40" />
 -- Retrieval info: 	<generic name="use_rate_match_fifo" value="0" />

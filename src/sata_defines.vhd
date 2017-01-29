@@ -25,6 +25,8 @@ package sata_defines is
     constant X_RDYp         : std_logic_vector(31 downto 0) := x"7CB55757";
 
 
+    constant SYNC_PATTERN   : std_logic_vector(7  downto 0)  := x"BC";
+
     -- status signals
     constant PHYRDY         : std_logic_vector(31 downto 0) := x"0A0A0A0A";
     constant PHYRDYn        : std_logic_vector(31 downto 0) := x"0A0A0A0A";

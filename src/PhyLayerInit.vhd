@@ -14,15 +14,12 @@ entity PhyLayerInit is
         rx_parallel_data : in  std_logic_vector(31 downto 0);
         rx_signaldetect  : in  std_logic;
 
-        oobSignalToSend  : in  OOB_SIGNAL;
-        readyForNewSignal: out std_logic;
-
-        oobSignalReceived: out OOB_SIGNAL;
-
         tx_forceelecidle : out std_logic;
         tx_parallel_data : out std_logic_vector(31 downto 0);
 
-        PHYREADY         : out std_logic
+        rx_bitslip       : out std_logic;
+
+        PHYRDY         : out std_logic
     );
 end entity PhyLayerInit;
 
@@ -32,13 +29,27 @@ architecture PhyLayerInit_arch of PhyLayerInit is
     signal phyInitNextState : PHYINIT_STATE_TYPE := HP1_HR_RESET;
     signal phyInitPrevState : PHYINIT_STATE_TYPE := HP1_HR_RESET;
 
+    signal ResumePending : std_logic := '0';
+
     signal oobSignalToSend  : OOB_SIGNAL := NONE;
     signal oobSignalReceived: OOB_SIGNAL := NONE;
+    signal readyForNewSignal: std_logic;
+
+    signal oobRxIdle : std_logic;
+    signal oobTxIdle : std_logic;
+
 
     signal forceQuiescent   : std_logic  := '0';
     signal tx_forceelecidle_oobDetector : std_logic := '0';
 
     signal retryTimeElapsed : std_logic_vector(31 downto 0) := (others => '0');
+
+    signal bitslip_reset            : std_logic;
+    signal bitslip_parallel_data_in : std_logic_vector(31 downto 0);
+    signal bitslip_done     : std_logic;
+    signal bitslip_rx_bitslip : std_logic;
+    signal AlignpDetected : std_logic;
+    signal consecutiveNonAligns : std_logic_vector(7 downto 0) := (others => '0');
 
 
     component OOB_SignalDetect is
@@ -52,15 +63,24 @@ architecture PhyLayerInit_arch of PhyLayerInit is
 
         oobSignalToSend  : in  OOB_SIGNAL;
         readyForNewSignal: out std_logic;
-        oobRxIdle    : out std_logic;
+        oobRxIdle        : out std_logic;
+        oobTxIdle        : out std_logic;
 
         oobSignalReceived: out OOB_SIGNAL;
 
-        tx_forceelecidle : out std_logic;
-        tx_parallel_data : out std_logic_vector(31 downto 0)
+        tx_forceelecidle : out std_logic
         );
     end component OOB_SignalDetect;
 
+    component bitslip_gen is
+    port(
+        clk : in std_logic;
+        reset: in std_logic;
+        data_in : in std_logic_vector(31 downto 0);
+        bitslip : out std_logic;
+        bitslip_done : out std_logic
+    );
+    end component bitslip_gen;
 
     begin
 
@@ -79,12 +99,20 @@ architecture PhyLayerInit_arch of PhyLayerInit is
             oobSignalToSend     => oobSignalToSend,
             readyForNewSignal   => readyForNewSignal,
             oobRxIdle           => oobRxIdle,
+            oobTxIdle           => oobTxIdle,
 
             oobSignalReceived   => oobSignalReceived,
-            tx_forceelecidle    => tx_forceelecidle_oobDetector,
-            tx_parallel_data    => tx_parallel_data
+            tx_forceelecidle    => tx_forceelecidle_oobDetector
         );
 
+    bitslipGen1 : bitslip_gen
+        port map(
+            clk    => rxclkout,
+            reset  => reset,
+            data_in => bitslip_parallel_data_in,
+            bitslip => bitslip_rx_bitslip,
+            bitslip_done => bitslip_done
+        );
 
 
     -- RetryInterval Counter
@@ -101,7 +129,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                 end if;
             end if;
         end if;
-    end process
+    end process;
 
 
 
@@ -117,7 +145,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                 phyInitState <= phyInitNextState;
             end if;
         end if;
-    end process
+    end process;
 
     -- Output Logic
     process(txclkout, reset)
@@ -127,71 +155,83 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                 forceQuiescent <= '1';
                 oobSignalToSend <= NONE;
                 tx_parallel_data <= (others => '0');
+            else
+                case phyInitState is
+                    when    HP1_HR_Reset                =>
+                    -- transmit COMRESET
+                        forceQuiescent <= '0';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= COMRESET;
+                    when    HP2_HR_AwaitCOMINIT         =>
+                    -- Quiescent
+                        forceQuiescent <= '1';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                    when    HP2B_HR_AwaitNoCOMINIT      =>
+                    --Quiescent
+                        forceQuiescent <= '1';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                    when    HP3_HR_Calibrate            =>
+                    -- Sending out Calibration Signals
+                    -- NOT SUPPORTED FOR NOW
+                        forceQuiescent <= '1';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                    when    HP4_HR_COMWAKE              =>
+                    -- Transmit COMWAKE
+                        forceQuiescent <= '0';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= COMWAKE;
+                    when    HP5_HR_AwaitCOMWAKE         =>
+                    -- Quiescent
+                        forceQuiescent <= '1';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                    when    HP5B_HR_AwaitNoCOMWAKE      =>
+                    -- Quiescent
+                        forceQuiescent <= '1';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                    when    HP6_HR_AwaitAlign           =>
+                    -- Transmit d10.2 words! (tx_parallel_data <= 0h'4A4A4A4A')???
+                        forceQuiescent <= '0';
+                        tx_parallel_data <= x"4A4A4A4A";
+                        oobSignalToSend <= NONE;
+                    when    HP7_HR_SendAlign            =>
+                    -- Transmit ALIGNp
+                        forceQuiescent <= '0';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                    when    HP8_HR_Ready                =>
+                    -- tx_parallel_data <= tx_parallel_data (from link layer);
+                    when    HP9_HR_Partial              =>
+                    -- not supported
+                        forceQuiescent <= '1';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                    when    HP10_HR_Slumber             =>
+                    -- not supported
+                        forceQuiescent <= '1';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                    when    HP11_HR_AdjustSpeed         =>
+                    -- not supported
+                        forceQuiescent <= '1';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                    when    others                      =>
+                    -- not supported
+                        forceQuiescent <= '1';
+                        tx_parallel_data <= ALIGNp;
+                        oobSignalToSend <= NONE;
+                end case;
             end if;
-        else
-            case phyInitState is
-                when    HP1_HR_Reset                =>
-                -- transmit COMRESET
-                    forceQuiescent <= '0';
-                    oobSignalToSend <= COMRESET;
-                when    HP2_HR_AwaitCOMINIT         =>
-                -- Quiescent
-                    forceQuiescent <= '1';
-                    oobSignalToSend <= NONE;
-                when    HP2B_HR_AwaitNoCOMINIT      =>
-                --Quiescent
-                    forceQuiescent <= '1';
-                    oobSignalToSend <= NONE;
-                when    HP3_HR_Calibrate            =>
-                -- Sending out Calibration Signals
-                -- NOT SUPPORTED FOR NOW
-                    forceQuiescent <= '1';
-                    oobSignalToSend <= NONE;
-                when    HP4_HR_COMWAKE              =>
-                -- Transmit COMWAKE
-                    oobSignalToSend <= COMWAKE;
-                when    HP5_HR_AwaitCOMWAKE         =>
-                -- Quiescent
-                    forceQuiescent <= '1';
-                    oobSignalToSend <= NONE;
-                when    HP5B_HR_AwaitNoCOMWAKE      =>
-                -- Quiescent
-                    forceQuiescent <= '1';
-                    oobSignalToSend <= NONE;
-                when    HP6_HR_AwaitAlign           =>
-                -- Transmit d10.2 words! (tx_parallel_data <= 0h'4A4A4A4A')???
-                    forceQuiescent <= '0';
-                    tx_parallel_data <= x"4A4A4A4A";
-                    oobSignalToSend <= NONE;
-                when    HP7_HR_SendAlign            =>
-                -- Transmit ALIGNp
-                    forceQuiescent <= '0';
-                    tx_parallel_data <= ALIGNp;
-                    oobSignalToSend <= NONE;
-                when    HP8_HR_Ready                =>
-                -- tx_parallel_data <= tx_parallel_data (from link layer);
-                when    HP9_HR_Partial              =>
-                -- not supported
-                    forceQuiescent <= '1';
-                    oobSignalToSend <= NONE;
-                when    HP10_HR_Slumber             =>
-                -- not supported
-                    forceQuiescent <= '1';
-                    oobSignalToSend <= NONE;
-                when    HP11_HR_AdjustSpeed         =>
-                -- not supported
-                    forceQuiescent <= '1';
-                    oobSignalToSend <= NONE;
-                when    others                      =>
-                -- not supported
-                    forceQuiescent <= '1';
-                    oobSignalToSend <= NONE;
-            end case;
         end if;
-    end process
+    end process;
 
     -- Next State Logic
-    process(*)
+    process(phyInitState, readyForNewSignal, oobSignalReceived, retryTimeElapsed, oobRxIdle, oobTxIdle, ResumePending, AlignpDetected, consecutiveNonAligns)
     begin
         case phyInitState is
             when    HP1_HR_Reset                =>
@@ -222,7 +262,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                 phyInitNextState <= HP4_HR_COMWAKE;
 
             when    HP4_HR_COMWAKE              =>
-                if(oobSendComplete = '0') then
+                if(oobTxIdle = '0') then
                     phyInitNextState <= HP4_HR_COMWAKE;
                 elsif(oobSignalReceived = COMWAKE) then
                     phyInitNextState <= HP5B_HR_AwaitNoCOMWAKE;
@@ -234,8 +274,11 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                 if(oobSignalReceived = COMWAKE) then
                     phyInitNextState <= HP5B_HR_AwaitNoCOMWAKE;
                 elsif(retryTimeElapsed > RETRY_INTERVAL) then
-                    phyInitNextState <= HP1_HR_RESET when ResumePending = '0' else
-                                        HP4_HR_COMWAKE;
+                    if(ResumePending = '0') then
+                        phyInitNextState <= HP1_HR_RESET;
+                    else
+                        phyInitNextState <= HP4_HR_COMWAKE;
+                    end if;
                 else
                     phyInitNextState <= HP5_HR_AwaitCOMWAKE;
                 end if;
@@ -279,8 +322,18 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                 -- currently not supported. Should never end here
                 phyInitNextState <= HP1_HR_Reset;
         end case;
-    end process
+    end process;
 
+
+    bitslip_reset <= '0' when phyInitState = HP6_HR_AwaitAlign and reset = '0' else
+                     '1';
+    bitslip_parallel_data_in <= rx_parallel_data when phyInitState = HP6_HR_AwaitAlign else
+                     (others => '0');
+    rx_bitslip <= bitslip_rx_bitslip when phyInitState = HP6_HR_AwaitAlign else
+               '0';
+
+    AlignpDetected <= '1' when (bitslip_done = '1') and (phyInitState = HP6_HR_AwaitAlign) else
+                      '0';
 
     PHYRDY <= '1' when phyInitState = HP8_HR_Ready else
               '0';

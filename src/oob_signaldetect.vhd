@@ -21,8 +21,7 @@ entity OOB_SignalDetect is
 
         oobSignalReceived: out OOB_SIGNAL;
 
-        tx_forceelecidle : out std_logic;
-        tx_parallel_data : out std_logic_vector(31 downto 0)
+        tx_forceelecidle : out std_logic
     );
 end entity OOB_SignalDetect;
 
@@ -128,7 +127,6 @@ begin
                             sendingSignal <= oobSignalToSend;
                         end if;
                         tx_forceelecidle <= '1';
-                        tx_parallel_data <= (others => '0');
 
                     when SEND_PULSE =>
                         if(UICountSent = TRANSMIT_PULSE_COUNT) then
@@ -138,7 +136,6 @@ begin
                             UICountSent <= UICountSent + 1;
                         end if;
                         tx_forceelecidle <= '0';
-                        tx_parallel_data <= ALIGNp;
 
                     when SEND_PAUSE =>
                         if(UICountSent = COMWAKE_PAUSE_COUNT and sendingSignal = COMWAKE) then
@@ -151,11 +148,9 @@ begin
                             UICountSent <= UICountSent + 1;
                         end if;
                         tx_forceelecidle <= '1';
-                        tx_parallel_data <= (others => '0');
 
                     when others     =>
                         tx_forceelecidle <= '0';
-                        tx_parallel_data <= (others => '0');
                 end case;
 
             end if;
