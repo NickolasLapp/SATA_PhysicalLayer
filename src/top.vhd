@@ -12,17 +12,19 @@ entity top is
 
         pll_refclk_150 : in std_logic;  -- 150MHz PLL refclk for XCVR design,
                                         -- driven by Si570 (need to change clock frequency with Clock Control GUI)
-
         rx_serial_data : in  std_logic_vector(1 downto 0); -- XCVR input serial line.
         tx_serial_data : out std_logic_vector(1 downto 0); -- XCVR output serial line
 
-        USER_LED_FPGA0 : out std_logic -- LED0 for heartbeat
+        USER_PB_FPGA1  : in  std_logic; -- PB1, used as alternative reset so that we can reset without resetting the clock control circuits
+        USER_LED_FPGA0 : out std_logic  -- LED0 for heartbeat
         );
 END top;
 
 architecture top_arch of top is
     signal reset            : std_logic;
     signal cpu_rst          : std_logic;
+    signal cpu_rst_debounced: std_logic;
+    signal pb_fpga1         : std_logic;
     signal ledCount         : std_logic_vector(63 downto 0);
 
 
@@ -226,20 +228,23 @@ architecture top_arch of top is
 
     cpu_rst <= not cpu_rst_n;
     resetDebounce_0 : Debounce
-        port map(clk50, cpu_rst, reset);
+        port map(clk50, cpu_rst, cpu_rst_debounced);
+
+    pb_debounce : Debounce
+        port map(clk50, USER_PB_FPGA1, pb_fpga1);
+
+    reset <= (not pb_fpga1) or cpu_rst_debounced;
 
     process(clk50, reset)
     begin
-        if(rising_edge(clk50)) then
-            if(reset = '1') then
-                ledCount <= (others => '0');
-            else
-                ledCount <= ledCount+1;
-            end if;
+        if(reset = '1') then
+            ledCount <= (others => '0');
+        elsif(rising_edge(clk50)) then
+            ledCount <= ledCount+1;
         end if;
     end process;
 
-    USER_LED_FPGA0 <= '1' when PHYRDY = '1' else '0';
+    USER_LED_FPGA0 <= '1' when PHYRDY = '1' or pb_fpga1 = '1' else '0';
 
 
     -- COMBINE INPUT SIGNALS

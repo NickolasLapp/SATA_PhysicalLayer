@@ -40,6 +40,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
 
 
     signal forceQuiescent   : std_logic  := '0';
+    signal forceActive      : std_logic  := '0';
     signal tx_forceelecidle_oobDetector : std_logic := '0';
 
     signal retryTimeElapsed : std_logic_vector(31 downto 0) := (others => '0');
@@ -84,7 +85,8 @@ architecture PhyLayerInit_arch of PhyLayerInit is
 
     begin
 
-    tx_forceelecidle <= '1' when forceQuiescent = '1' else
+    tx_forceelecidle <= '1' when forceQuiescent = '1' and oobTxIdle = '1' else
+                        '0' when forceActive    = '1' else
                         tx_forceelecidle_oobDetector;
 
     signalDetect1 : OOB_SignalDetect
@@ -118,15 +120,13 @@ architecture PhyLayerInit_arch of PhyLayerInit is
     -- RetryInterval Counter
     process(txclkout, reset)
     begin
-        if(rising_edge(txclkout)) then
-            if(reset = '0') then
-                retryTimeElapsed <= (others => '0');
+        if(reset = '1') then
+            retryTimeElapsed <= (others => '0');
+        elsif(rising_edge(txclkout)) then
+            if(phyInitState = phyInitNextState) then
+                retryTimeElapsed <= retryTimeElapsed + 1;
             else
-                if(phyInitState = phyInitPrevState) then
-                    retryTimeElapsed <= retryTimeElapsed + 1;
-                else
-                    retryTimeElapsed <= (others => '0');
-                end if;
+                retryTimeElapsed <= (others => '0');
             end if;
         end if;
     end process;
@@ -136,97 +136,107 @@ architecture PhyLayerInit_arch of PhyLayerInit is
     -- State Register
     process(txclkout, reset)
     begin
-        if(rising_edge(txclkout)) then
-            if(reset = '1') then
-                phyInitState <= HP1_HR_RESET;
-                phyInitPrevState <= HP1_HR_RESET;
-            else
-                phyInitPrevState <= phyInitState;
-                phyInitState <= phyInitNextState;
-            end if;
+        if(reset = '1') then
+            phyInitState <= HP1_HR_RESET;
+            phyInitPrevState <= HP1_HR_RESET;
+        elsif(rising_edge(txclkout)) then
+            phyInitPrevState <= phyInitState;
+            phyInitState <= phyInitNextState;
         end if;
     end process;
 
     -- Output Logic
     process(txclkout, reset)
     begin
-        if(rising_edge(txclkout)) then
-            if(reset = '1') then
-                forceQuiescent <= '1';
-                oobSignalToSend <= NONE;
-                tx_parallel_data <= (others => '0');
-            else
-                case phyInitState is
-                    when    HP1_HR_Reset                =>
-                    -- transmit COMRESET
-                        forceQuiescent <= '0';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= COMRESET;
-                    when    HP2_HR_AwaitCOMINIT         =>
-                    -- Quiescent
-                        forceQuiescent <= '1';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                    when    HP2B_HR_AwaitNoCOMINIT      =>
-                    --Quiescent
-                        forceQuiescent <= '1';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                    when    HP3_HR_Calibrate            =>
-                    -- Sending out Calibration Signals
-                    -- NOT SUPPORTED FOR NOW
-                        forceQuiescent <= '1';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                    when    HP4_HR_COMWAKE              =>
-                    -- Transmit COMWAKE
-                        forceQuiescent <= '0';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= COMWAKE;
-                    when    HP5_HR_AwaitCOMWAKE         =>
-                    -- Quiescent
-                        forceQuiescent <= '1';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                    when    HP5B_HR_AwaitNoCOMWAKE      =>
-                    -- Quiescent
-                        forceQuiescent <= '1';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                    when    HP6_HR_AwaitAlign           =>
-                    -- Transmit d10.2 words! (tx_parallel_data <= 0h'4A4A4A4A')???
-                        forceQuiescent <= '0';
-                        tx_parallel_data <= x"4A4A4A4A";
-                        oobSignalToSend <= NONE;
-                    when    HP7_HR_SendAlign            =>
-                    -- Transmit ALIGNp
-                        forceQuiescent <= '0';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                    when    HP8_HR_Ready                =>
-                    -- tx_parallel_data <= tx_parallel_data (from link layer);
-                    when    HP9_HR_Partial              =>
-                    -- not supported
-                        forceQuiescent <= '1';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                    when    HP10_HR_Slumber             =>
-                    -- not supported
-                        forceQuiescent <= '1';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                    when    HP11_HR_AdjustSpeed         =>
-                    -- not supported
-                        forceQuiescent <= '1';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                    when    others                      =>
-                    -- not supported
-                        forceQuiescent <= '1';
-                        tx_parallel_data <= ALIGNp;
-                        oobSignalToSend <= NONE;
-                end case;
-            end if;
+        if(reset = '1') then
+            forceQuiescent <= '1';
+            forceActive    <= '0';
+            oobSignalToSend <= NONE;
+            tx_parallel_data <= (others => '0');
+        elsif(rising_edge(txclkout)) then
+            case phyInitState is
+                when    HP1_HR_Reset                =>
+                -- transmit COMRESET
+                    forceQuiescent <= '0';
+                    forceActive    <= '0';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= COMRESET;
+                when    HP2_HR_AwaitCOMINIT         =>
+                -- Quiescent
+                    forceQuiescent <= '1';
+                    forceActive    <= '0';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    HP2B_HR_AwaitNoCOMINIT      =>
+                --Quiescent
+                    forceQuiescent <= '1';
+                    forceActive    <= '0';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    HP3_HR_Calibrate            =>
+                -- Sending out Calibration Signals
+                -- NOT SUPPORTED FOR NOW
+                    forceQuiescent <= '1';
+                    forceActive    <= '0';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    HP4_HR_COMWAKE              =>
+                -- Transmit COMWAKE
+                    forceQuiescent <= '0';
+                    forceActive    <= '0';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= COMWAKE;
+                when    HP5_HR_AwaitCOMWAKE         =>
+                -- Quiescent
+                    forceQuiescent <= '1';
+                    forceActive    <= '0';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    HP5B_HR_AwaitNoCOMWAKE      =>
+                -- Quiescent
+                    forceActive    <= '0';
+                    forceQuiescent <= '1';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    HP6_HR_AwaitAlign           =>
+                -- Transmit d10.2 words! (tx_parallel_data <= 0h'4A4A4A4A')???
+                    forceQuiescent <= '0';
+                    forceActive    <= '1';
+                    tx_parallel_data <= x"4A4A4A4A";
+                    oobSignalToSend <= NONE;
+                when    HP7_HR_SendAlign            =>
+                -- Transmit ALIGNp
+                    forceQuiescent <= '0';
+                    forceActive    <= '1';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    HP8_HR_Ready                =>
+                -- tx_parallel_data <= tx_parallel_data (from link layer);
+                    forceQuiescent <= '0';
+                    forceActive    <= '1';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    HP9_HR_Partial              =>
+                -- not supported
+                    forceQuiescent <= '1';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    HP10_HR_Slumber             =>
+                -- not supported
+                    forceQuiescent <= '1';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    HP11_HR_AdjustSpeed         =>
+                -- not supported
+                    forceQuiescent <= '1';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+                when    others                      =>
+                -- not supported
+                    forceQuiescent <= '1';
+                    tx_parallel_data <= ALIGNp;
+                    oobSignalToSend <= NONE;
+            end case;
         end if;
     end process;
 
@@ -235,7 +245,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
     begin
         case phyInitState is
             when    HP1_HR_Reset                =>
-                if(readyForNewSignal = '1') then
+                if(oobTxIdle = '1') then
                     phyInitNextState <= HP2_HR_AwaitCOMINIT;
                 else
                     phyInitNextState <= HP1_HR_Reset;
@@ -244,7 +254,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
             when    HP2_HR_AwaitCOMINIT         =>
                 if(oobSignalReceived = COMINIT) then
                     phyInitNextState <= HP2B_HR_AwaitNoCOMINIT;
-                elsif(retryTimeElapsed > RETRY_INTERVAL) then
+                elsif(retryTimeElapsed >= RETRY_INTERVAL) then
                     phyInitNextState <= HP1_HR_Reset;
                 else
                     phyInitNextState <= HP2_HR_AwaitCOMINIT;
