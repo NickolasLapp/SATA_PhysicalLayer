@@ -142,10 +142,12 @@ architecture top_arch of top is
             reset            : in  std_logic;
 
             rx_parallel_data : in  std_logic_vector(31 downto 0);
+            rx_datak         : in  std_logic_vector(3 downto 0);
             rx_signaldetect  : in  std_logic;
 
             tx_forceelecidle : out std_logic;
             tx_parallel_data : out std_logic_vector(31 downto 0);
+            tx_datak         : out std_logic_vector(3 downto 0);
 
             rx_bitslip       : out std_logic;
 
@@ -169,10 +171,12 @@ architecture top_arch of top is
             reset            => reset,
 
             rx_parallel_data => rx_parallel_data_CH1,
+            rx_datak         => rx_datak_CH1,
             rx_signaldetect  => rx_signaldetect_CH1,
 
             tx_forceelecidle => tx_forceelecidle_CH1,
             tx_parallel_data => tx_parallel_data_CH1,
+            tx_datak         => tx_datak_CH1,
 
             rx_bitslip       => rx_bitslip_CH1,
             PHYRDY           => PHYRDY

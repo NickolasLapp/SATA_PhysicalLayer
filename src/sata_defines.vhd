@@ -5,27 +5,33 @@ use ieee.numeric_std.all;
 
 package sata_defines is
     -- primitives
-    constant ALIGNp         : std_logic_vector(31 downto 0) := x"BC4A4A7B";
-    constant CONTp          : std_logic_vector(31 downto 0) := x"7CAA9999";
-    constant DMATp          : std_logic_vector(31 downto 0) := x"7CB53636";
-    constant EOFp           : std_logic_vector(31 downto 0) := x"7CB5D5D5";
-    constant HOLDp          : std_logic_vector(31 downto 0) := x"7CAAD5D5";
-    constant HOLDAp         : std_logic_vector(31 downto 0) := x"7CAA9595";
-    constant PMACKp         : std_logic_vector(31 downto 0) := x"7C959595";
-    constant PMNAKp         : std_logic_vector(31 downto 0) := x"7C95F5F5";
-    constant PMREQ_Pp       : std_logic_vector(31 downto 0) := x"7CB51717";
-    constant PMREQ_Sp       : std_logic_vector(31 downto 0) := x"7C957575";
-    constant R_ERRp         : std_logic_vector(31 downto 0) := x"7CB55656";
-    constant R_IPp          : std_logic_vector(31 downto 0) := x"7CB55555";
-    constant R_OKp          : std_logic_vector(31 downto 0) := x"7CB53535";
-    constant R_RDYp         : std_logic_vector(31 downto 0) := x"7C954A4A";
-    constant SOFp           : std_logic_vector(31 downto 0) := x"7CB53737";
-    constant SYNCp          : std_logic_vector(31 downto 0) := x"7C95B5B5";
-    constant WTRMp          : std_logic_vector(31 downto 0) := x"7CB55858";
-    constant X_RDYp         : std_logic_vector(31 downto 0) := x"7CB55757";
+    constant ALIGNp   : std_logic_vector(31 downto 0) := x"7B4A4ABC";
+    constant CONTp    : std_logic_vector(31 downto 0) := x"9999AA7C";
+    constant DMATp    : std_logic_vector(31 downto 0) := x"3636B57C";
+    constant EOFp     : std_logic_vector(31 downto 0) := x"D5D5B57C";
+    constant HOLDp    : std_logic_vector(31 downto 0) := x"D5D5AA7C";
+    constant HOLDAp   : std_logic_vector(31 downto 0) := x"9595AA7C";
+    constant PMACKp   : std_logic_vector(31 downto 0) := x"9595957C";
+    constant PMNAKp   : std_logic_vector(31 downto 0) := x"F5F5957C";
+    constant PMREQ_Pp : std_logic_vector(31 downto 0) := x"1717B57C";
+    constant PMREQ_Sp : std_logic_vector(31 downto 0) := x"7575957C";
+    constant R_ERRp   : std_logic_vector(31 downto 0) := x"5656B57C";
+    constant R_IPp    : std_logic_vector(31 downto 0) := x"5555B57C";
+    constant R_OKp    : std_logic_vector(31 downto 0) := x"3535B57C";
+    constant R_RDYp   : std_logic_vector(31 downto 0) := x"4A4A957C";
+    constant SOFp     : std_logic_vector(31 downto 0) := x"3737B57C";
+    constant SYNCp    : std_logic_vector(31 downto 0) := x"B5B5957C";
+    constant WTRMp    : std_logic_vector(31 downto 0) := x"5858B57C";
+    constant X_RDYp   : std_logic_vector(31 downto 0) := x"5757B57C";
 
 
-    constant SYNC_PATTERN   : std_logic_vector(7  downto 0)  := x"BC";
+    constant SYNC_PATTERN   : std_logic_vector(7 downto 0)  := x"BC";
+
+    constant DATAK_BYTE_ZERO  : std_logic_vector(3 downto 0)  := "0001";
+    constant DATAK_BYTE_ONE   : std_logic_vector(3 downto 0)  := "0010";
+    constant DATAK_BYTE_TWO   : std_logic_vector(3 downto 0)  := "0100";
+    constant DATAK_BYTE_THREE : std_logic_vector(3 downto 0)  := "1000";
+    constant DATAK_BYTE_NONE  : std_logic_vector(3 downto 0)  := "0000";
 
     -- status signals
     constant PHYRDY         : std_logic_vector(31 downto 0) := x"0A0A0A0A";

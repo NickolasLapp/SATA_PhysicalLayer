@@ -12,10 +12,12 @@ entity PhyLayerInit is
         reset            : in  std_logic;
 
         rx_parallel_data : in  std_logic_vector(31 downto 0);
+        rx_datak         : in  std_logic_vector(3 downto 0);
         rx_signaldetect  : in  std_logic;
 
         tx_forceelecidle : out std_logic;
         tx_parallel_data : out std_logic_vector(31 downto 0);
+        tx_datak         : out std_logic_vector(3 downto 0);
 
         rx_bitslip       : out std_logic;
 
@@ -50,7 +52,25 @@ architecture PhyLayerInit_arch of PhyLayerInit is
     signal bitslip_done     : std_logic;
     signal bitslip_rx_bitslip : std_logic;
     signal AlignpDetected : std_logic;
-    signal consecutiveNonAligns : std_logic_vector(7 downto 0) := (others => '0');
+    signal consecutiveNonAligns : std_logic_vector(3 downto 0) := (others => '0');
+
+    signal do_word_align   : std_logic;
+    signal is_word_aligned : std_logic;
+    signal rx_aligned_data : std_logic_vector(31 downto 0);
+
+    component word_aligner is
+        port(
+            rxclkout         : in  std_logic;
+            reset            : in  std_logic;
+            do_word_align    : in  std_logic;
+
+            rx_parallel_data : in  std_logic_vector(31 downto 0);
+            rx_datak         : in  std_logic_vector(3 downto 0);
+
+            is_word_aligned  : out std_logic;
+            rx_aligned_data  : out std_logic_vector(31 downto 0)
+        );
+    end component word_aligner;
 
 
     component OOB_SignalDetect is
@@ -85,9 +105,33 @@ architecture PhyLayerInit_arch of PhyLayerInit is
 
     begin
 
-    tx_forceelecidle <= '1' when forceQuiescent = '1' and oobTxIdle = '1' else
-                        '0' when forceActive    = '1' else
-                        tx_forceelecidle_oobDetector;
+    process(txclkout, reset)
+    begin
+        if(reset = '1') then
+            tx_forceelecidle <= '0';
+        elsif(rising_edge(txclkout)) then
+            if(forceQuiescent = '1' and oobTxIdle = '1') then
+                tx_forceelecidle <= '1';
+            elsif(forceActive = '1') then
+                tx_forceelecidle <= '0';
+            else
+                tx_forceelecidle <= tx_forceelecidle_oobDetector;
+            end if;
+        end if;
+    end process;
+
+    wordAlign1 : word_aligner
+        port map(
+            rxclkout         => rxclkout,
+            reset            => reset,
+            do_word_align    => do_word_align,
+
+            rx_parallel_data => rx_parallel_data,
+            rx_datak         => rx_datak,
+
+            is_word_aligned  => is_word_aligned,
+            rx_aligned_data  => rx_aligned_data
+        );
 
     signalDetect1 : OOB_SignalDetect
         port map(
@@ -160,18 +204,21 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                     forceQuiescent <= '0';
                     forceActive    <= '0';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= COMRESET;
                 when    HP2_HR_AwaitCOMINIT         =>
                 -- Quiescent
                     forceQuiescent <= '1';
                     forceActive    <= '0';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    HP2B_HR_AwaitNoCOMINIT      =>
                 --Quiescent
                     forceQuiescent <= '1';
                     forceActive    <= '0';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    HP3_HR_Calibrate            =>
                 -- Sending out Calibration Signals
@@ -179,62 +226,73 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                     forceQuiescent <= '1';
                     forceActive    <= '0';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    HP4_HR_COMWAKE              =>
                 -- Transmit COMWAKE
                     forceQuiescent <= '0';
                     forceActive    <= '0';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= COMWAKE;
                 when    HP5_HR_AwaitCOMWAKE         =>
                 -- Quiescent
                     forceQuiescent <= '1';
                     forceActive    <= '0';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    HP5B_HR_AwaitNoCOMWAKE      =>
                 -- Quiescent
                     forceActive    <= '0';
                     forceQuiescent <= '1';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    HP6_HR_AwaitAlign           =>
                 -- Transmit d10.2 words! (tx_parallel_data <= 0h'4A4A4A4A')???
                     forceQuiescent <= '0';
                     forceActive    <= '1';
                     tx_parallel_data <= x"4A4A4A4A";
+                    tx_datak <= DATAK_BYTE_NONE;
                     oobSignalToSend <= NONE;
                 when    HP7_HR_SendAlign            =>
                 -- Transmit ALIGNp
                     forceQuiescent <= '0';
                     forceActive    <= '1';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    HP8_HR_Ready                =>
                 -- tx_parallel_data <= tx_parallel_data (from link layer);
                     forceQuiescent <= '0';
                     forceActive    <= '1';
-                    tx_parallel_data <= ALIGNp;
+                    tx_parallel_data <= SYNCp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    HP9_HR_Partial              =>
                 -- not supported
                     forceQuiescent <= '1';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    HP10_HR_Slumber             =>
                 -- not supported
                     forceQuiescent <= '1';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    HP11_HR_AdjustSpeed         =>
                 -- not supported
                     forceQuiescent <= '1';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
                 when    others                      =>
                 -- not supported
                     forceQuiescent <= '1';
                     tx_parallel_data <= ALIGNp;
+                    tx_datak <= DATAK_BYTE_ZERO;
                     oobSignalToSend <= NONE;
             end case;
         end if;
@@ -334,6 +392,18 @@ architecture PhyLayerInit_arch of PhyLayerInit is
         end case;
     end process;
 
+    process(rxclkout, reset)
+    begin
+        if(reset = '1') then
+            consecutiveNonAligns <= (others => '0');
+        elsif(rising_edge(rxclkout)) then
+            if(phyInitState = HP7_HR_SendAlign and rx_aligned_data(7 downto 0) = x"7C") then
+                consecutiveNonAligns <= consecutiveNonAligns + 1;
+            else
+                consecutiveNonAligns <= (others => '0');
+            end if;
+        end if;
+    end process;
 
     bitslip_reset <= '0' when phyInitState = HP6_HR_AwaitAlign and reset = '0' else
                      '1';
@@ -342,7 +412,10 @@ architecture PhyLayerInit_arch of PhyLayerInit is
     rx_bitslip <= bitslip_rx_bitslip when phyInitState = HP6_HR_AwaitAlign else
                '0';
 
-    AlignpDetected <= '1' when (bitslip_done = '1') and (phyInitState = HP6_HR_AwaitAlign) else
+    do_word_align <= '1' when bitslip_done = '1' and phyInitState = HP6_HR_AwaitAlign else
+                     '0';
+
+    AlignpDetected <= '1' when (bitslip_done = '1') and (is_word_aligned = '1') and (phyInitState = HP6_HR_AwaitAlign) else
                       '0';
 
     PHYRDY <= '1' when phyInitState = HP8_HR_Ready else
