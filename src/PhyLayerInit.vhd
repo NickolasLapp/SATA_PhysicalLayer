@@ -19,8 +19,10 @@ entity PhyLayerInit is
         tx_parallel_data : out std_logic_vector(31 downto 0);
         tx_datak         : out std_logic_vector(3 downto 0);
 
-        rx_bitslip       : out std_logic;
+        do_word_align    : out std_logic;
+        rx_syncstatus    : in std_logic_vector(3 downto 0);
 
+        oob_handshake_done : out std_logic;
         PHYRDY         : out std_logic
     );
 end entity PhyLayerInit;
@@ -29,13 +31,11 @@ architecture PhyLayerInit_arch of PhyLayerInit is
 
     signal phyInitState     : PHYINIT_STATE_TYPE := HP1_HR_RESET;
     signal phyInitNextState : PHYINIT_STATE_TYPE := HP1_HR_RESET;
-    signal phyInitPrevState : PHYINIT_STATE_TYPE := HP1_HR_RESET;
 
     signal ResumePending : std_logic := '0';
 
     signal oobSignalToSend  : OOB_SIGNAL := NONE;
     signal oobSignalReceived: OOB_SIGNAL := NONE;
-    signal readyForNewSignal: std_logic;
 
     signal oobRxIdle : std_logic;
     signal oobTxIdle : std_logic;
@@ -47,30 +47,26 @@ architecture PhyLayerInit_arch of PhyLayerInit is
 
     signal retryTimeElapsed : std_logic_vector(31 downto 0) := (others => '0');
 
-    signal bitslip_reset            : std_logic;
-    signal bitslip_parallel_data_in : std_logic_vector(31 downto 0);
-    signal bitslip_done     : std_logic;
-    signal bitslip_rx_bitslip : std_logic;
     signal AlignpDetected : std_logic;
     signal consecutiveNonAligns : std_logic_vector(3 downto 0) := (others => '0');
 
-    signal do_word_align   : std_logic;
-    signal is_word_aligned : std_logic;
-    signal rx_aligned_data : std_logic_vector(31 downto 0);
+    signal do_byte_order   : std_logic;
+    signal is_byte_ordered : std_logic;
+    signal rx_ordered_data : std_logic_vector(31 downto 0);
 
-    component word_aligner is
+    component byte_orderer is
         port(
             rxclkout         : in  std_logic;
             reset            : in  std_logic;
-            do_word_align    : in  std_logic;
+            do_byte_order    : in  std_logic;
 
             rx_parallel_data : in  std_logic_vector(31 downto 0);
             rx_datak         : in  std_logic_vector(3 downto 0);
 
-            is_word_aligned  : out std_logic;
-            rx_aligned_data  : out std_logic_vector(31 downto 0)
+            is_byte_ordered  : out std_logic;
+            rx_ordered_data  : out std_logic_vector(31 downto 0)
         );
-    end component word_aligner;
+    end component byte_orderer;
 
 
     component OOB_SignalDetect is
@@ -83,7 +79,6 @@ architecture PhyLayerInit_arch of PhyLayerInit is
         rx_signaldetect  : in  std_logic;
 
         oobSignalToSend  : in  OOB_SIGNAL;
-        readyForNewSignal: out std_logic;
         oobRxIdle        : out std_logic;
         oobTxIdle        : out std_logic;
 
@@ -92,16 +87,6 @@ architecture PhyLayerInit_arch of PhyLayerInit is
         tx_forceelecidle : out std_logic
         );
     end component OOB_SignalDetect;
-
-    component bitslip_gen is
-    port(
-        clk : in std_logic;
-        reset: in std_logic;
-        data_in : in std_logic_vector(31 downto 0);
-        bitslip : out std_logic;
-        bitslip_done : out std_logic
-    );
-    end component bitslip_gen;
 
     begin
 
@@ -120,17 +105,17 @@ architecture PhyLayerInit_arch of PhyLayerInit is
         end if;
     end process;
 
-    wordAlign1 : word_aligner
+    byteOrder1 : byte_orderer
         port map(
             rxclkout         => rxclkout,
             reset            => reset,
-            do_word_align    => do_word_align,
+            do_byte_order    => do_byte_order,
 
             rx_parallel_data => rx_parallel_data,
             rx_datak         => rx_datak,
 
-            is_word_aligned  => is_word_aligned,
-            rx_aligned_data  => rx_aligned_data
+            is_byte_ordered  => is_byte_ordered,
+            rx_ordered_data  => rx_ordered_data
         );
 
     signalDetect1 : OOB_SignalDetect
@@ -143,23 +128,12 @@ architecture PhyLayerInit_arch of PhyLayerInit is
             rx_signaldetect     => rx_signaldetect,
 
             oobSignalToSend     => oobSignalToSend,
-            readyForNewSignal   => readyForNewSignal,
             oobRxIdle           => oobRxIdle,
             oobTxIdle           => oobTxIdle,
 
             oobSignalReceived   => oobSignalReceived,
             tx_forceelecidle    => tx_forceelecidle_oobDetector
         );
-
-    bitslipGen1 : bitslip_gen
-        port map(
-            clk    => rxclkout,
-            reset  => reset,
-            data_in => bitslip_parallel_data_in,
-            bitslip => bitslip_rx_bitslip,
-            bitslip_done => bitslip_done
-        );
-
 
     -- RetryInterval Counter
     process(txclkout, reset)
@@ -182,9 +156,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
     begin
         if(reset = '1') then
             phyInitState <= HP1_HR_RESET;
-            phyInitPrevState <= HP1_HR_RESET;
         elsif(rising_edge(txclkout)) then
-            phyInitPrevState <= phyInitState;
             phyInitState <= phyInitNextState;
         end if;
     end process;
@@ -299,7 +271,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
     end process;
 
     -- Next State Logic
-    process(phyInitState, readyForNewSignal, oobSignalReceived, retryTimeElapsed, oobRxIdle, oobTxIdle, ResumePending, AlignpDetected, consecutiveNonAligns)
+    process(phyInitState, oobSignalReceived, retryTimeElapsed, oobRxIdle, oobTxIdle, ResumePending, AlignpDetected, consecutiveNonAligns)
     begin
         case phyInitState is
             when    HP1_HR_Reset                =>
@@ -397,7 +369,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
         if(reset = '1') then
             consecutiveNonAligns <= (others => '0');
         elsif(rising_edge(rxclkout)) then
-            if(phyInitState = HP7_HR_SendAlign and rx_aligned_data(7 downto 0) = x"7C") then
+            if(phyInitState = HP7_HR_SendAlign and rx_ordered_data(7 downto 0) = x"7C") then
                 consecutiveNonAligns <= consecutiveNonAligns + 1;
             else
                 consecutiveNonAligns <= (others => '0');
@@ -405,17 +377,15 @@ architecture PhyLayerInit_arch of PhyLayerInit is
         end if;
     end process;
 
-    bitslip_reset <= '0' when phyInitState = HP6_HR_AwaitAlign and reset = '0' else
-                     '1';
-    bitslip_parallel_data_in <= rx_parallel_data when phyInitState = HP6_HR_AwaitAlign else
-                     (others => '0');
-    rx_bitslip <= bitslip_rx_bitslip when phyInitState = HP6_HR_AwaitAlign else
-               '0';
+    oob_handshake_done <= '1' when phyInitState = HP5B_HR_AwaitNoCOMWAKE else '0';
 
-    do_word_align <= '1' when bitslip_done = '1' and phyInitState = HP6_HR_AwaitAlign else
+    do_word_align <= '1' when phyInitState = HP6_HR_AwaitAlign else
                      '0';
 
-    AlignpDetected <= '1' when (bitslip_done = '1') and (is_word_aligned = '1') and (phyInitState = HP6_HR_AwaitAlign) else
+    do_byte_order <= '1' when rx_syncstatus /= "0000" and phyInitState = HP6_HR_AwaitAlign else
+                     '0';
+
+    AlignpDetected <= '1' when (rx_syncstatus /= "0000") and (is_byte_ordered = '1') and (phyInitState = HP6_HR_AwaitAlign) else
                       '0';
 
     PHYRDY <= '1' when phyInitState = HP8_HR_Ready else

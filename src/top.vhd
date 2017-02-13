@@ -12,8 +12,8 @@ entity top is
 
         pll_refclk_150 : in std_logic;  -- 150MHz PLL refclk for XCVR design,
                                         -- driven by Si570 (need to change clock frequency with Clock Control GUI)
-        rx_serial_data : in  std_logic_vector(1 downto 0); -- XCVR input serial line.
-        tx_serial_data : out std_logic_vector(1 downto 0); -- XCVR output serial line
+        rx_serial_data : in  std_logic; -- XCVR input serial line.
+        tx_serial_data : out std_logic; -- XCVR output serial line
 
         USER_PB_FPGA1  : in  std_logic; -- PB1, used as alternative reset so that we can reset without resetting the clock control circuits
         USER_LED_FPGA0 : out std_logic  -- LED0 for heartbeat
@@ -21,119 +21,151 @@ entity top is
 END top;
 
 architecture top_arch of top is
+    -- top level signals
     signal reset            : std_logic;
     signal cpu_rst          : std_logic;
     signal cpu_rst_debounced: std_logic;
     signal pb_fpga1         : std_logic;
-    signal ledCount         : std_logic_vector(63 downto 0);
-
-
-    signal bitslip_wait_CH1 : std_logic_vector(63 downto 0) := (others => '0');
-    signal bitslip_wait_CH2 : std_logic_vector(63 downto 0) := (others => '0');
-
-
-    -- Channel Specific Settings
-    -------------------------------------------------------
-    -- CH1
-    signal tx_forceelecidle_CH1         : std_logic := '0';
-    signal rx_runningdisp_CH1           : std_logic_vector(3 downto 0);
-    signal rx_is_lockedtoref_CH1        : std_logic;
-    signal rx_is_lockedtodata_CH1       : std_logic;
-    signal rx_signaldetect_CH1          : std_logic;
-    signal rx_bitslip_CH1               : std_logic := '0';
-    signal rx_clkout_CH1                : std_logic := '0';
-    signal tx_datak_CH1                 : std_logic_vector(3 downto 0)   := (others => '0');
-    signal rx_parallel_data_CH1         : std_logic_vector(31 downto 0);
-    signal tx_parallel_data_CH1         : std_logic_vector(31 downto 0);
-    signal rx_datak_CH1                 : std_logic_vector(3 downto 0);
-
-    -- CH2
-    signal tx_forceelecidle_CH2         : std_logic := '0';
-    signal rx_runningdisp_CH2           : std_logic_vector(3 downto 0);
-    signal rx_is_lockedtoref_CH2        : std_logic;
-    signal rx_is_lockedtodata_CH2       : std_logic;
-    signal rx_signaldetect_CH2          : std_logic;
-    signal rx_bitslip_CH2               : std_logic;
-    signal rx_clkout_CH2                : std_logic;
-    signal tx_datak_CH2                 : std_logic_vector(3 downto 0)   := (others => '0');
-    signal rx_parallel_data_CH2         : std_logic_vector(31 downto 0);
-    signal tx_parallel_data_CH2         : std_logic_vector(31 downto 0);
-    signal rx_datak_CH2                 : std_logic_vector(3 downto 0);
-
-    -- Channel Combined
-    signal tx_ready                 : std_logic;
-    signal rx_ready                 : std_logic;
-    signal tx_forceelecidle         : std_logic_vector(1 downto 0);
-    signal rx_runningdisp           : std_logic_vector(7 downto 0);
-    signal rx_is_lockedtoref        : std_logic_vector(1 downto 0);
-    signal rx_is_lockedtodata       : std_logic_vector(1 downto 0);
-    signal rx_signaldetect          : std_logic_vector(1 downto 0);
-    signal rx_bitslip               : std_logic_vector(1 downto 0);
-    signal rx_clkout                : std_logic_vector(1 downto 0);
-    signal tx_parallel_data         : std_logic_vector(63 downto 0);
-    signal tx_datak                 : std_logic_vector(7 downto 0);
-    signal rx_parallel_data         : std_logic_vector(63 downto 0);
-    signal rx_datak                 : std_logic_vector(7 downto 0);
-
-    -- Channel Independent Settings
-    -------------------------------------------------------
-    signal pll_locked               : std_logic;
-    signal tx_clkout                : std_logic;
-    signal reconfig_from_xcvr       : std_logic_vector(137 downto 0);
-    signal reconfig_to_xcvr         : std_logic_vector(209 downto 0);
-    signal reconfig_busy            : std_logic;
-
     signal PHYRDY                   : std_logic;
 
-    component CustomPhy is
-        port (
-            phy_mgmt_clk             : in  std_logic;
-            phy_mgmt_clk_reset       : in  std_logic;
-            phy_mgmt_address         : in  std_logic_vector(8 downto 0);
-            phy_mgmt_read            : in  std_logic;
-            phy_mgmt_readdata        : out std_logic_vector(31 downto 0);
-            phy_mgmt_waitrequest     : out std_logic;
-            phy_mgmt_write           : in  std_logic;
-            phy_mgmt_writedata       : in  std_logic_vector(31 downto 0);
-            tx_ready                 : out std_logic;
-            rx_ready                 : out std_logic;
-            pll_ref_clk              : in  std_logic;
-            tx_serial_data           : out std_logic_vector(1 downto 0);
-            tx_forceelecidle         : in  std_logic_vector(1 downto 0);
-            tx_bitslipboundaryselect : in  std_logic_vector(9 downto 0);
-            pll_locked               : out std_logic;
-            rx_serial_data           : in  std_logic_vector(1 downto 0);
-            rx_runningdisp           : out std_logic_vector(7 downto 0);
-            rx_is_lockedtoref        : out std_logic_vector(1 downto 0);
-            rx_is_lockedtodata       : out std_logic_vector(1 downto 0);
-            rx_signaldetect          : out std_logic_vector(1 downto 0);
-            rx_bitslip               : in  std_logic_vector(1 downto 0);
-            tx_clkout                : out std_logic;
-            rx_clkout                : out std_logic_vector(1 downto 0);
-            tx_parallel_data         : in  std_logic_vector(63 downto 0);
-            tx_datak                 : in  std_logic_vector(7 downto 0);
-            rx_parallel_data         : out std_logic_vector(63 downto 0);
-            rx_datak                 : out std_logic_vector(7 downto 0);
-            reconfig_from_xcvr       : out std_logic_vector(137 downto 0);
-            reconfig_to_xcvr         : in  std_logic_vector(209 downto 0)
-        );
-    end component CustomPhy;
+    -- xcvr signals
+    --PHY Control Signals
+    signal rx_clkout                : std_logic; -- use this to clock the receive datapath
+    signal tx_clkout                : std_logic; -- use this to clock the transmit datapath
+    signal pll_locked               : std_logic; -- is the pll reference clock locked in
 
-    component CustomPhy_Reconf is
+    signal rx_parallel_data         : std_logic_vector(31 downto 0); -- received data
+    signal tx_parallel_data         : std_logic_vector(31 downto 0); -- data to transmit
+
+    signal tx_forceelecidle         : std_logic; -- force signal idle for OOB signaling
+    signal rx_signaldetect          : std_logic; -- detect signal idle for OOB signaling
+    signal rx_is_lockedtoref        : std_logic; -- receiver is locked to pll reference clock
+    signal rx_is_lockedtodata       : std_logic; -- receiver is locked to CDR block from received data
+
+    signal do_word_align            : std_logic; -- perform word alignment to the comma 28.5 character
+    signal rx_patterndetect         : std_logic_vector(3 downto 0); -- are we detecting the comma character in received data?
+    signal rx_syncstatus            : std_logic_vector(3 downto 0); -- are we synced to data? (why is this 4 bits wide...?)
+
+    signal rx_errdetect             : std_logic_vector(3 downto 0); -- reports a 8B/10B Code violation
+    signal rx_disperr               : std_logic_vector(3 downto 0); -- reports a 8B/10B Disparity Error
+
+    signal tx_datak                 : std_logic_vector(3 downto 0); -- send control character on specified byte instead of data character (k28.5 instead of d28.5)
+    signal rx_datak                 : std_logic_vector(3 downto 0); -- reports which bytes contained control characters
+
+    signal tx_ready           : std_logic; -- is the transmitter ready
+    signal rx_ready           : std_logic; -- is the receiver ready
+
+    --rst signals
+    signal pll_powerdown      : std_logic; --      pll_powerdown.pll_powerdown
+    signal tx_analogreset     : std_logic; --     tx_analogreset.tx_analogreset
+    signal tx_digitalreset    : std_logic; --    tx_digitalreset.tx_digitalreset
+    signal rx_analogreset     : std_logic; --     rx_analogreset.rx_analogreset
+    signal rx_digitalreset    : std_logic; --    rx_digitalreset.rx_digitalreset
+
+    signal tx_cal_busy        : std_logic; --        tx_cal_busy.tx_cal_busy
+    signal rx_cal_busy        : std_logic; --        rx_cal_busy.rx_cal_busy
+
+    signal rx_set_locktodata  : std_logic;
+    signal rx_set_locktoref   : std_logic;
+
+    -- reconfig signals
+    signal reconfig_from_xcvr       : std_logic_vector(91 downto 0);
+    signal reconfig_to_xcvr         : std_logic_vector(139 downto 0);
+    signal reconfig_busy            : std_logic;
+
+    signal oob_handshake_done       : std_logic;
+
+    component NativePhy is
         port (
-            reconfig_busy             : out std_logic;
-            mgmt_clk_clk              : in  std_logic;
-            mgmt_rst_reset            : in  std_logic;
-            reconfig_mgmt_address     : in  std_logic_vector(6 downto 0);
-            reconfig_mgmt_read        : in  std_logic;
-            reconfig_mgmt_readdata    : out std_logic_vector(31 downto 0);
-            reconfig_mgmt_waitrequest : out std_logic;
-            reconfig_mgmt_write       : in  std_logic;
-            reconfig_mgmt_writedata   : in  std_logic_vector(31 downto 0);
-            reconfig_to_xcvr          : out std_logic_vector(209 downto 0);
-            reconfig_from_xcvr        : in  std_logic_vector(137 downto 0)
+            pll_powerdown           : in  std_logic; --           pll_powerdown.pll_powerdown
+            tx_analogreset          : in  std_logic; --          tx_analogreset.tx_analogreset
+            tx_digitalreset         : in  std_logic; --         tx_digitalreset.tx_digitalreset
+            tx_pll_refclk           : in  std_logic; --           tx_pll_refclk.tx_pll_refclk
+            tx_serial_data          : out std_logic;                      --          tx_serial_data.tx_serial_data
+            pll_locked              : out std_logic;                      --              pll_locked.pll_locked
+            rx_analogreset          : in  std_logic; --          rx_analogreset.rx_analogreset
+            rx_digitalreset         : in  std_logic; --         rx_digitalreset.rx_digitalreset
+            rx_cdr_refclk           : in  std_logic; --           rx_cdr_refclk.rx_cdr_refclk
+            rx_serial_data          : in  std_logic; --          rx_serial_data.rx_serial_data
+            rx_set_locktodata       : in  std_logic; --       rx_set_locktodata.rx_set_locktodata
+            rx_set_locktoref        : in  std_logic; --        rx_set_locktoref.rx_set_locktoref
+            rx_is_lockedtoref       : out std_logic;                      --       rx_is_lockedtoref.rx_is_lockedtoref
+            rx_is_lockedtodata      : out std_logic;                      --      rx_is_lockedtodata.rx_is_lockedtodata
+            tx_std_coreclkin        : in  std_logic; --        tx_std_coreclkin.tx_std_coreclkin
+            rx_std_coreclkin        : in  std_logic; --        rx_std_coreclkin.rx_std_coreclkin
+            tx_std_clkout           : out std_logic;                      --           tx_std_clkout.tx_std_clkout
+            rx_std_clkout           : out std_logic;                      --           rx_std_clkout.rx_std_clkout
+            rx_std_wa_patternalign  : in  std_logic; --  rx_std_wa_patternalign.rx_std_wa_patternalign
+            tx_std_elecidle         : in  std_logic; --         tx_std_elecidle.tx_std_elecidle
+            rx_std_signaldetect     : out std_logic;                      --     rx_std_signaldetect.rx_std_signaldetect
+            tx_cal_busy             : out std_logic;                      --             tx_cal_busy.tx_cal_busy
+            rx_cal_busy             : out std_logic;                      --             rx_cal_busy.rx_cal_busy
+            reconfig_to_xcvr        : in  std_logic_vector(139 downto 0); --        reconfig_to_xcvr.reconfig_to_xcvr
+            reconfig_from_xcvr      : out std_logic_vector(91 downto 0);                     --      reconfig_from_xcvr.reconfig_from_xcvr
+            tx_parallel_data        : in  std_logic_vector(31 downto 0); --        tx_parallel_data.tx_parallel_data
+            tx_datak                : in  std_logic_vector(3 downto 0); --                tx_datak.tx_datak
+            unused_tx_parallel_data : in  std_logic_vector(7 downto 0); -- unused_tx_parallel_data.unused_tx_parallel_data
+            rx_parallel_data        : out std_logic_vector(31 downto 0);                     --        rx_parallel_data.rx_parallel_data
+            rx_datak                : out std_logic_vector(3 downto 0);                      --                rx_datak.rx_datak
+            rx_errdetect            : out std_logic_vector(3 downto 0);                      --            rx_errdetect.rx_errdetect
+            rx_disperr              : out std_logic_vector(3 downto 0);                      --              rx_disperr.rx_disperr
+            rx_runningdisp          : out std_logic_vector(3 downto 0);                      --          rx_runningdisp.rx_runningdisp
+            rx_patterndetect        : out std_logic_vector(3 downto 0);                      --        rx_patterndetect.rx_patterndetect
+            rx_syncstatus           : out std_logic_vector(3 downto 0);                      --           rx_syncstatus.rx_syncstatus
+            unused_rx_parallel_data : out std_logic_vector(7 downto 0)                       -- unused_rx_parallel_data.unused_rx_parallel_data
         );
-    end component CustomPhy_Reconf;
+    end component NativePhy;
+
+    component XCVR_ResetController is
+        port (
+            clock              : in  std_logic;             --              clock.clk
+            reset              : in  std_logic;             --              reset.reset
+            pll_powerdown      : out std_logic;                    --      pll_powerdown.pll_powerdown
+            tx_analogreset     : out std_logic;                    --     tx_analogreset.tx_analogreset
+            tx_digitalreset    : out std_logic;                    --    tx_digitalreset.tx_digitalreset
+            tx_ready           : out std_logic;                    --           tx_ready.tx_ready
+            pll_locked         : in  std_logic; --         pll_locked.pll_locked
+            pll_select         : in  std_logic; --         pll_select.pll_select
+            tx_cal_busy        : in  std_logic; --        tx_cal_busy.tx_cal_busy
+            rx_analogreset     : out std_logic;                    --     rx_analogreset.rx_analogreset
+            rx_digitalreset    : out std_logic;                    --    rx_digitalreset.rx_digitalreset
+            rx_ready           : out std_logic;                    --           rx_ready.rx_ready
+            rx_is_lockedtodata : in  std_logic; -- rx_is_lockedtodata.rx_is_lockedtodata
+            rx_cal_busy        : in  std_logic--        rx_cal_busy.rx_cal_busy
+        );
+    end component XCVR_ResetController;
+
+    --component XCVR_CustomReset
+    --    port (
+    --        clk50              : in std_logic;
+    --        master_reset       : in std_logic;
+    --        pll_powerdown      : out std_logic;
+    --        tx_digitalreset    : out std_logic;
+    --        rx_analogreset     : out std_logic;
+    --        rx_digitalreset    : out std_logic;
+    --        rx_locktorefclk    : out std_logic;
+    --        rx_locktodata      : out std_logic;
+    --        busy               : in std_logic;
+    --        pll_locked         : in std_logic;
+    --        oob_handshake_done : in std_logic
+    --    );
+    --end component;
+
+    component XCVR_Reconf is
+        port (
+            reconfig_busy             : out std_logic;                                         --      reconfig_busy.reconfig_busy
+            mgmt_clk_clk              : in  std_logic;             --       mgmt_clk_clk.clk
+            mgmt_rst_reset            : in  std_logic;             --     mgmt_rst_reset.reset
+            reconfig_mgmt_address     : in  std_logic_vector(6 downto 0)   ; --      reconfig_mgmt.address
+            reconfig_mgmt_read        : in  std_logic;             --                   .read
+            reconfig_mgmt_readdata    : out std_logic_vector(31 downto 0);                     --                   .readdata
+            reconfig_mgmt_waitrequest : out std_logic;                                         --                   .waitrequest
+            reconfig_mgmt_write       : in  std_logic;             --                   .write
+            reconfig_mgmt_writedata   : in  std_logic_vector(31 downto 0); --                   .writedata
+            reconfig_to_xcvr          : out std_logic_vector(139 downto 0);                    --   reconfig_to_xcvr.reconfig_to_xcvr
+            reconfig_from_xcvr        : in  std_logic_vector(91 downto 0)  -- reconfig_from_xcvr.reconfig_from_xcvr
+        );
+    end component XCVR_Reconf;
 
     component PhyLayerInit is
         port(
@@ -149,8 +181,10 @@ architecture top_arch of top is
             tx_parallel_data : out std_logic_vector(31 downto 0);
             tx_datak         : out std_logic_vector(3 downto 0);
 
-            rx_bitslip       : out std_logic;
+            do_word_align    : out std_logic;
+            rx_syncstatus    : in std_logic_vector(3 downto 0);
 
+            oob_handshake_done: out std_logic;
             PHYRDY         : out std_logic
         );
     end component PhyLayerInit;
@@ -166,56 +200,68 @@ architecture top_arch of top is
 
     phyLayerInit1 : PhyLayerInit
         port map(
-            rxclkout         => rx_clkout_CH1,
+            rxclkout         => rx_clkout,
             txclkout         => tx_clkout,
             reset            => reset,
 
-            rx_parallel_data => rx_parallel_data_CH1,
-            rx_datak         => rx_datak_CH1,
-            rx_signaldetect  => rx_signaldetect_CH1,
+            rx_parallel_data => rx_parallel_data,
+            rx_datak         => rx_datak,
+            rx_signaldetect  => rx_signaldetect,
 
-            tx_forceelecidle => tx_forceelecidle_CH1,
-            tx_parallel_data => tx_parallel_data_CH1,
-            tx_datak         => tx_datak_CH1,
+            tx_forceelecidle => tx_forceelecidle,
+            tx_parallel_data => tx_parallel_data,
+            tx_datak         => tx_datak,
 
-            rx_bitslip       => rx_bitslip_CH1,
+            do_word_align    => do_word_align,
+            rx_syncstatus    => rx_syncstatus,
+
+            oob_handshake_done => oob_handshake_done,
             PHYRDY           => PHYRDY
         );
 
-    custom_1 : CustomPhy
-        port  map(
-            phy_mgmt_clk             => clk50,
-            phy_mgmt_clk_reset       => reset,
-            phy_mgmt_address         => (others => '0'),
-            phy_mgmt_read            => '0',
-            --phy_mgmt_readdata
-            --phy_mgmt_waitrequest
-            phy_mgmt_write           => '0',
-            phy_mgmt_writedata       => (others => '0'),
-            tx_ready                 => tx_ready,
-            rx_ready                 => rx_ready,
-            pll_ref_clk              => pll_refclk_150,
-            tx_serial_data           => tx_serial_data,
-            tx_forceelecidle         => tx_forceelecidle,
-            tx_bitslipboundaryselect => (others => '0'),
-            pll_locked               => pll_locked,
-            rx_serial_data           => rx_serial_data,
-            rx_runningdisp           => rx_runningdisp,
-            rx_is_lockedtoref        => rx_is_lockedtoref,
-            rx_is_lockedtodata       => rx_is_lockedtodata,
-            rx_signaldetect          => rx_signaldetect,
-            rx_bitslip               => rx_bitslip,
-            tx_clkout                => tx_clkout,
-            rx_clkout                => rx_clkout,
-            tx_parallel_data         => tx_parallel_data,
-            tx_datak                 => tx_datak,
-            rx_parallel_data         => rx_parallel_data,
-            rx_datak                 => rx_datak,
-            reconfig_from_xcvr       => reconfig_from_xcvr,
-            reconfig_to_xcvr         => reconfig_to_xcvr
-        );
 
-    reconf_1 : CustomPhy_Reconf
+
+    native1 : NativePhy
+        port  map(
+            pll_powerdown           => pll_powerdown,
+            tx_analogreset          => tx_analogreset,
+            tx_digitalreset         => tx_digitalreset,
+            tx_pll_refclk           => pll_refclk_150,
+            tx_serial_data          => tx_serial_data,
+            pll_locked              => pll_locked,
+            rx_analogreset          => rx_analogreset,
+            rx_digitalreset         => rx_digitalreset,
+            rx_cdr_refclk           => pll_refclk_150, -- cdr refclk is same as pll refclk!!!
+            rx_serial_data          => rx_serial_data,
+            rx_set_locktodata       => rx_set_locktodata,
+            rx_set_locktoref        => rx_set_locktoref,
+            rx_is_lockedtoref       => rx_is_lockedtoref,
+            rx_is_lockedtodata      => rx_is_lockedtodata,
+            tx_std_coreclkin        => tx_clkout,
+            rx_std_coreclkin        => rx_clkout,
+            tx_std_clkout           => tx_clkout,
+            rx_std_clkout           => rx_clkout,
+            rx_std_wa_patternalign  => do_word_align,
+            tx_std_elecidle         => tx_forceelecidle,
+            rx_std_signaldetect     => rx_signaldetect,
+            tx_cal_busy             => tx_cal_busy,
+            rx_cal_busy             => rx_cal_busy,
+            reconfig_to_xcvr        => reconfig_to_xcvr,
+            reconfig_from_xcvr      => reconfig_from_xcvr,
+            tx_parallel_data        => tx_parallel_data,
+            tx_datak                => tx_datak,
+            unused_tx_parallel_data => (others => '0'), -- don't need the unused parallel data
+            rx_parallel_data        => rx_parallel_data,
+            rx_datak                => rx_datak,
+            rx_errdetect            => rx_errdetect, -- code violation or disparity error
+            rx_disperr              => rx_disperr,   -- disparity error only
+            rx_runningdisp          => OPEN, -- we don't care about what the current running disparity is.
+            rx_patterndetect        => rx_patterndetect, -- word alignment detected the comma pattern, k28.5
+            rx_syncstatus           => rx_syncstatus -- syncstatus high indicates word aligned
+--            unused_rx_parallel_data => -- don't need the unused parallel data
+       );
+
+    reconf_1 : XCVR_Reconf
         port map (
             reconfig_busy             => reconfig_busy,
             mgmt_clk_clk              => clk50,
@@ -230,6 +276,41 @@ architecture top_arch of top is
             reconfig_from_xcvr        => reconfig_from_xcvr
         );
 
+    --customRst1 : XCVR_CustomReset
+    --    port map (
+    --        clk50              => clk50,
+    --        master_reset       => reset,
+    --        pll_powerdown      => pll_powerdown,
+    --        tx_digitalreset    => tx_digitalreset,
+    --        rx_analogreset     => rx_analogreset,
+    --        rx_digitalreset    => rx_digitalreset,
+    --        rx_locktorefclk    => rx_set_locktoref,
+    --        rx_locktodata      => rx_set_locktodata,
+    --        busy               => tx_cal_busy,
+    --        pll_locked         => pll_locked,
+    --        oob_handshake_done => oob_handshake_done
+    --    );
+
+
+    xcvr_reset1 : XCVR_ResetController
+        port map (
+            clock              => clk50,
+            reset              => reset,
+            pll_powerdown      => pll_powerdown,
+            tx_analogreset     => tx_analogreset,
+            tx_digitalreset    => tx_digitalreset,
+            tx_ready           => tx_ready,
+            pll_locked         => pll_locked,
+            pll_select         => '0',
+            tx_cal_busy        => tx_cal_busy,
+            rx_analogreset     => rx_analogreset,
+            rx_digitalreset    => rx_digitalreset,
+            rx_ready           => rx_ready,
+            rx_is_lockedtodata => rx_is_lockedtodata,
+            rx_cal_busy        => rx_cal_busy
+        );
+
+    -- debounce reset and pushbutton.
     cpu_rst <= not cpu_rst_n;
     resetDebounce_0 : Debounce
         port map(clk50, cpu_rst, cpu_rst_debounced);
@@ -239,100 +320,5 @@ architecture top_arch of top is
 
     reset <= (not pb_fpga1) or cpu_rst_debounced;
 
-    process(clk50, reset)
-    begin
-        if(reset = '1') then
-            ledCount <= (others => '0');
-        elsif(rising_edge(clk50)) then
-            ledCount <= ledCount+1;
-        end if;
-    end process;
-
     USER_LED_FPGA0 <= '1' when PHYRDY = '1' or pb_fpga1 = '1' else '0';
-
-
-    -- COMBINE INPUT SIGNALS
-    ---------------------------------------------------------------------------
-    tx_forceelecidle         <= tx_forceelecidle_CH2 & tx_forceelecidle_CH1;
-    tx_parallel_data         <= tx_parallel_data_CH2 & tx_parallel_data_CH1;
-    tx_datak                 <= tx_datak_CH2 & tx_datak_CH1;
-    rx_bitslip               <= rx_bitslip_CH2 & rx_bitslip_CH1;
-
-    -- SPLIT OUTPUT SIGNALS
-    ---------------------------------------------------------------------------
-    rx_runningdisp_CH1 <= rx_runningdisp(3 downto 0);
-    rx_runningdisp_CH2 <= rx_runningdisp(7 downto 4);
-
-    rx_parallel_data_CH1     <= rx_parallel_data(31 downto 0);
-    rx_parallel_data_CH2     <= rx_parallel_data(63 downto 32);
-
-    rx_datak_CH1             <= rx_datak(3 downto 0);
-    rx_datak_CH2             <= rx_datak(7 downto 4);
-
-    rx_clkout_CH1            <= rx_clkout(0);
-    rx_clkout_CH2            <= rx_clkout(1);
-
-    rx_is_lockedtoref_CH1    <= rx_is_lockedtoref(0);
-    rx_is_lockedtoref_CH2    <= rx_is_lockedtoref(1);
-
-    rx_is_lockedtodata_CH1    <= rx_is_lockedtodata(0);
-    rx_is_lockedtodata_CH2    <= rx_is_lockedtodata(1);
-
---    tx_parallel_data_CH1     <= ALIGNp;
-    tx_parallel_data_CH2     <= ALIGNp;
-
-    rx_signaldetect_CH1      <= rx_signaldetect(0);
-    rx_signaldetect_CH2      <= rx_signaldetect(1);
-
-
-    tx_forceelecidle_CH2 <= '1';
-
-
- --   process(rx_clkout(0), reset)
- --   begin
- --   if(rising_edge(rx_clkout(0))) then
- --           if(reset = '1') then
- --               bitslip_wait_CH1 <= (others => '0');
- --           else
- --               if(rx_parallel_data_CH1 /= ALIGNp) then
- --                   if(bitslip_wait_CH1 > 60) then
- --                       rx_bitslip_CH1 <= '0';
- --                       bitslip_wait_CH1 <= (others => '0');
- --                   elsif(bitslip_wait_CH1 > 50) then
- --                       rx_bitslip_CH1 <= '1';
- --                       bitslip_wait_CH1 <= bitslip_wait_CH1 + 1;
- --                   else
- --                       rx_bitslip_CH1 <= '0';
- --                       bitslip_wait_CH1 <= bitslip_wait_CH1 + 1;
- --                   end if;
- --               else
- --                   rx_bitslip_CH1 <= '0';
- --               end if;
- --          end if;
- --       end if;
- --   end process;
-
- --   process(rx_clkout(1), reset)
- --   begin
- --       if(rising_edge(rx_clkout(1))) then
- --           if(reset = '1') then
- --               bitslip_wait_CH2 <= (others => '0');
- --           else
- --               if(rx_parallel_data_CH2 /= ALIGNp) then
- --                   if(bitslip_wait_CH2 > 60) then
- --                       bitslip_wait_CH2 <= (others => '0');
- --                       rx_bitslip_CH2 <= '0';
- --                   elsif(bitslip_wait_CH2 > 50) then
- --                       rx_bitslip_CH2 <= '1';
- --                       bitslip_wait_CH2 <= bitslip_wait_CH2 + 1;
- --                   else
- --                       rx_bitslip_CH2 <= '0';
- --                       bitslip_wait_CH2 <= bitslip_wait_CH2 + 1;
- --                   end if;
- --               else
- --                   rx_bitslip_CH2 <= '0';
- --               end if;
- --           end if;
- --       end if;
- --   end process;
 end top_arch;

@@ -10,35 +10,33 @@ use IEEE.numeric_std.all;
 
 entity CustomPhy is
 	port (
-		phy_mgmt_clk             : in  std_logic                      := '0';             --             phy_mgmt_clk.clk
-		phy_mgmt_clk_reset       : in  std_logic                      := '0';             --       phy_mgmt_clk_reset.reset
-		phy_mgmt_address         : in  std_logic_vector(8 downto 0)   := (others => '0'); --                 phy_mgmt.address
-		phy_mgmt_read            : in  std_logic                      := '0';             --                         .read
-		phy_mgmt_readdata        : out std_logic_vector(31 downto 0);                     --                         .readdata
-		phy_mgmt_waitrequest     : out std_logic;                                         --                         .waitrequest
-		phy_mgmt_write           : in  std_logic                      := '0';             --                         .write
-		phy_mgmt_writedata       : in  std_logic_vector(31 downto 0)  := (others => '0'); --                         .writedata
-		tx_ready                 : out std_logic;                                         --                 tx_ready.export
-		rx_ready                 : out std_logic;                                         --                 rx_ready.export
-		pll_ref_clk              : in  std_logic_vector(0 downto 0)   := (others => '0'); --              pll_ref_clk.clk
-		tx_serial_data           : out std_logic_vector(1 downto 0);                      --           tx_serial_data.export
-		tx_forceelecidle         : in  std_logic_vector(1 downto 0)   := (others => '0'); --         tx_forceelecidle.export
-		tx_bitslipboundaryselect : in  std_logic_vector(9 downto 0)   := (others => '0'); -- tx_bitslipboundaryselect.export
-		pll_locked               : out std_logic_vector(0 downto 0);                      --               pll_locked.export
-		rx_serial_data           : in  std_logic_vector(1 downto 0)   := (others => '0'); --           rx_serial_data.export
-		rx_runningdisp           : out std_logic_vector(7 downto 0);                      --           rx_runningdisp.export
-		rx_is_lockedtoref        : out std_logic_vector(1 downto 0);                      --        rx_is_lockedtoref.export
-		rx_is_lockedtodata       : out std_logic_vector(1 downto 0);                      --       rx_is_lockedtodata.export
-		rx_signaldetect          : out std_logic_vector(1 downto 0);                      --          rx_signaldetect.export
-		rx_bitslip               : in  std_logic_vector(1 downto 0)   := (others => '0'); --               rx_bitslip.export
-		tx_clkout                : out std_logic_vector(0 downto 0);                      --                tx_clkout.export
-		rx_clkout                : out std_logic_vector(1 downto 0);                      --                rx_clkout.export
-		tx_parallel_data         : in  std_logic_vector(63 downto 0)  := (others => '0'); --         tx_parallel_data.export
-		tx_datak                 : in  std_logic_vector(7 downto 0)   := (others => '0'); --                 tx_datak.export
-		rx_parallel_data         : out std_logic_vector(63 downto 0);                     --         rx_parallel_data.export
-		rx_datak                 : out std_logic_vector(7 downto 0);                      --                 rx_datak.export
-		reconfig_from_xcvr       : out std_logic_vector(137 downto 0);                    --       reconfig_from_xcvr.reconfig_from_xcvr
-		reconfig_to_xcvr         : in  std_logic_vector(209 downto 0) := (others => '0')  --         reconfig_to_xcvr.reconfig_to_xcvr
+		phy_mgmt_clk         : in  std_logic                      := '0';             --       phy_mgmt_clk.clk
+		phy_mgmt_clk_reset   : in  std_logic                      := '0';             -- phy_mgmt_clk_reset.reset
+		phy_mgmt_address     : in  std_logic_vector(8 downto 0)   := (others => '0'); --           phy_mgmt.address
+		phy_mgmt_read        : in  std_logic                      := '0';             --                   .read
+		phy_mgmt_readdata    : out std_logic_vector(31 downto 0);                     --                   .readdata
+		phy_mgmt_waitrequest : out std_logic;                                         --                   .waitrequest
+		phy_mgmt_write       : in  std_logic                      := '0';             --                   .write
+		phy_mgmt_writedata   : in  std_logic_vector(31 downto 0)  := (others => '0'); --                   .writedata
+		tx_ready             : out std_logic;                                         --           tx_ready.export
+		rx_ready             : out std_logic;                                         --           rx_ready.export
+		pll_ref_clk          : in  std_logic_vector(0 downto 0)   := (others => '0'); --        pll_ref_clk.clk
+		tx_serial_data       : out std_logic_vector(0 downto 0);                      --     tx_serial_data.export
+		tx_forceelecidle     : in  std_logic_vector(0 downto 0)   := (others => '0'); --   tx_forceelecidle.export
+		pll_locked           : out std_logic_vector(0 downto 0);                      --         pll_locked.export
+		rx_serial_data       : in  std_logic_vector(0 downto 0)   := (others => '0'); --     rx_serial_data.export
+		rx_runningdisp       : out std_logic_vector(3 downto 0);                      --     rx_runningdisp.export
+		rx_is_lockedtoref    : out std_logic_vector(0 downto 0);                      --  rx_is_lockedtoref.export
+		rx_is_lockedtodata   : out std_logic_vector(0 downto 0);                      -- rx_is_lockedtodata.export
+		rx_signaldetect      : out std_logic_vector(0 downto 0);                      --    rx_signaldetect.export
+		tx_clkout            : out std_logic_vector(0 downto 0);                      --          tx_clkout.export
+		rx_clkout            : out std_logic_vector(0 downto 0);                      --          rx_clkout.export
+		tx_parallel_data     : in  std_logic_vector(31 downto 0)  := (others => '0'); --   tx_parallel_data.export
+		tx_datak             : in  std_logic_vector(3 downto 0)   := (others => '0'); --           tx_datak.export
+		rx_parallel_data     : out std_logic_vector(31 downto 0);                     --   rx_parallel_data.export
+		rx_datak             : out std_logic_vector(3 downto 0);                      --           rx_datak.export
+		reconfig_from_xcvr   : out std_logic_vector(91 downto 0);                     -- reconfig_from_xcvr.reconfig_from_xcvr
+		reconfig_to_xcvr     : in  std_logic_vector(139 downto 0) := (others => '0')  --   reconfig_to_xcvr.reconfig_to_xcvr
 	);
 end entity CustomPhy;
 
@@ -123,48 +121,48 @@ architecture rtl of CustomPhy is
 			tx_ready                    : out std_logic;                                         -- export
 			rx_ready                    : out std_logic;                                         -- export
 			pll_ref_clk                 : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- clk
-			tx_serial_data              : out std_logic_vector(1 downto 0);                      -- export
-			tx_forceelecidle            : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
-			tx_bitslipboundaryselect    : in  std_logic_vector(9 downto 0)   := (others => 'X'); -- export
+			tx_serial_data              : out std_logic_vector(0 downto 0);                      -- export
+			tx_forceelecidle            : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
 			pll_locked                  : out std_logic_vector(0 downto 0);                      -- export
-			rx_serial_data              : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
-			rx_runningdisp              : out std_logic_vector(7 downto 0);                      -- export
-			rx_is_lockedtoref           : out std_logic_vector(1 downto 0);                      -- export
-			rx_is_lockedtodata          : out std_logic_vector(1 downto 0);                      -- export
-			rx_signaldetect             : out std_logic_vector(1 downto 0);                      -- export
-			rx_bitslip                  : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
+			rx_serial_data              : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			rx_runningdisp              : out std_logic_vector(3 downto 0);                      -- export
+			rx_is_lockedtoref           : out std_logic_vector(0 downto 0);                      -- export
+			rx_is_lockedtodata          : out std_logic_vector(0 downto 0);                      -- export
+			rx_signaldetect             : out std_logic_vector(0 downto 0);                      -- export
 			tx_clkout                   : out std_logic_vector(0 downto 0);                      -- export
-			rx_clkout                   : out std_logic_vector(1 downto 0);                      -- export
-			tx_parallel_data            : in  std_logic_vector(63 downto 0)  := (others => 'X'); -- export
-			tx_datak                    : in  std_logic_vector(7 downto 0)   := (others => 'X'); -- export
-			rx_parallel_data            : out std_logic_vector(63 downto 0);                     -- export
-			rx_datak                    : out std_logic_vector(7 downto 0);                      -- export
-			reconfig_from_xcvr          : out std_logic_vector(137 downto 0);                    -- reconfig_from_xcvr
-			reconfig_to_xcvr            : in  std_logic_vector(209 downto 0) := (others => 'X'); -- reconfig_to_xcvr
-			rx_disperr                  : out std_logic_vector(7 downto 0);                      -- export
-			rx_errdetect                : out std_logic_vector(7 downto 0);                      -- export
-			rx_patterndetect            : out std_logic_vector(7 downto 0);                      -- export
-			rx_syncstatus               : out std_logic_vector(7 downto 0);                      -- export
-			rx_bitslipboundaryselectout : out std_logic_vector(9 downto 0);                      -- export
-			rx_enabyteord               : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
-			rx_rmfifodatainserted       : out std_logic_vector(7 downto 0);                      -- export
-			rx_rmfifodatadeleted        : out std_logic_vector(7 downto 0);                      -- export
-			rx_rlv                      : out std_logic_vector(1 downto 0);                      -- export
-			rx_byteordflag              : out std_logic_vector(1 downto 0);                      -- export
-			tx_coreclkin                : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
-			rx_coreclkin                : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
-			rx_recovered_clk            : out std_logic_vector(1 downto 0);                      -- export
+			rx_clkout                   : out std_logic_vector(0 downto 0);                      -- export
+			tx_parallel_data            : in  std_logic_vector(31 downto 0)  := (others => 'X'); -- export
+			tx_datak                    : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- export
+			rx_parallel_data            : out std_logic_vector(31 downto 0);                     -- export
+			rx_datak                    : out std_logic_vector(3 downto 0);                      -- export
+			reconfig_from_xcvr          : out std_logic_vector(91 downto 0);                     -- reconfig_from_xcvr
+			reconfig_to_xcvr            : in  std_logic_vector(139 downto 0) := (others => 'X'); -- reconfig_to_xcvr
+			tx_bitslipboundaryselect    : in  std_logic_vector(4 downto 0)   := (others => 'X'); -- export
+			rx_disperr                  : out std_logic_vector(3 downto 0);                      -- export
+			rx_errdetect                : out std_logic_vector(3 downto 0);                      -- export
+			rx_patterndetect            : out std_logic_vector(3 downto 0);                      -- export
+			rx_syncstatus               : out std_logic_vector(3 downto 0);                      -- export
+			rx_bitslipboundaryselectout : out std_logic_vector(4 downto 0);                      -- export
+			rx_enabyteord               : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			rx_bitslip                  : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			rx_rmfifodatainserted       : out std_logic_vector(3 downto 0);                      -- export
+			rx_rmfifodatadeleted        : out std_logic_vector(3 downto 0);                      -- export
+			rx_rlv                      : out std_logic_vector(0 downto 0);                      -- export
+			rx_byteordflag              : out std_logic_vector(0 downto 0);                      -- export
+			tx_coreclkin                : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			rx_coreclkin                : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			rx_recovered_clk            : out std_logic_vector(0 downto 0);                      -- export
 			cdr_ref_clk                 : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			tx_dispval                  : in  std_logic_vector(7 downto 0)   := (others => 'X'); -- export
-			tx_forcedisp                : in  std_logic_vector(7 downto 0)   := (others => 'X'); -- export
+			tx_dispval                  : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- export
+			tx_forcedisp                : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- export
 			pll_powerdown               : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
-			tx_digitalreset             : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
-			tx_analogreset              : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
-			tx_cal_busy                 : out std_logic_vector(1 downto 0);                      -- export
-			rx_digitalreset             : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
-			rx_analogreset              : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- export
-			rx_cal_busy                 : out std_logic_vector(1 downto 0);                      -- export
-			ext_pll_clk                 : in  std_logic_vector(1 downto 0)   := (others => 'X')  -- export
+			tx_digitalreset             : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			tx_analogreset              : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			tx_cal_busy                 : out std_logic_vector(0 downto 0);                      -- export
+			rx_digitalreset             : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			rx_analogreset              : in  std_logic_vector(0 downto 0)   := (others => 'X'); -- export
+			rx_cal_busy                 : out std_logic_vector(0 downto 0);                      -- export
+			ext_pll_clk                 : in  std_logic_vector(0 downto 0)   := (others => 'X')  -- export
 		);
 	end component altera_xcvr_custom;
 
@@ -175,29 +173,29 @@ begin
 			device_family                         => "Cyclone V",
 			protocol_hint                         => "basic",
 			operation_mode                        => "Duplex",
-			lanes                                 => 2,
-			bonded_group_size                     => 2,
+			lanes                                 => 1,
+			bonded_group_size                     => 1,
 			bonded_mode                           => "xN",
-			pma_bonding_mode                      => "xN",
+			pma_bonding_mode                      => "x1",
 			pcs_pma_width                         => 20,
 			ser_base_factor                       => 8,
 			ser_words                             => 4,
 			data_rate                             => "1500 Mbps",
 			base_data_rate                        => "1500 Mbps",
 			en_synce_support                      => 0,
-			tx_bitslip_enable                     => "true",
+			tx_bitslip_enable                     => "false",
 			rx_use_coreclk                        => "false",
 			tx_use_coreclk                        => "false",
 			use_8b10b                             => "true",
 			use_8b10b_manual_control              => "false",
 			std_tx_pcfifo_mode                    => "low_latency",
 			std_rx_pcfifo_mode                    => "low_latency",
-			word_aligner_mode                     => "bitslip",
+			word_aligner_mode                     => "manual",
 			word_aligner_state_machine_datacnt    => 1,
 			word_aligner_state_machine_errcnt     => 1,
 			word_aligner_state_machine_patterncnt => 10,
 			word_aligner_pattern_length           => 10,
-			word_align_pattern                    => "0101111100",
+			word_align_pattern                    => "0011111010",
 			run_length_violation_checking         => 40,
 			use_rate_match_fifo                   => 0,
 			rate_match_pattern1                   => "11010000111010000011",
@@ -239,59 +237,59 @@ begin
 			channel_interface                     => 0
 		)
 		port map (
-			phy_mgmt_clk                => phy_mgmt_clk,             --             phy_mgmt_clk.clk
-			phy_mgmt_clk_reset          => phy_mgmt_clk_reset,       --       phy_mgmt_clk_reset.reset
-			phy_mgmt_address            => phy_mgmt_address,         --                 phy_mgmt.address
-			phy_mgmt_read               => phy_mgmt_read,            --                         .read
-			phy_mgmt_readdata           => phy_mgmt_readdata,        --                         .readdata
-			phy_mgmt_waitrequest        => phy_mgmt_waitrequest,     --                         .waitrequest
-			phy_mgmt_write              => phy_mgmt_write,           --                         .write
-			phy_mgmt_writedata          => phy_mgmt_writedata,       --                         .writedata
-			tx_ready                    => tx_ready,                 --                 tx_ready.export
-			rx_ready                    => rx_ready,                 --                 rx_ready.export
-			pll_ref_clk                 => pll_ref_clk,              --              pll_ref_clk.clk
-			tx_serial_data              => tx_serial_data,           --           tx_serial_data.export
-			tx_forceelecidle            => tx_forceelecidle,         --         tx_forceelecidle.export
-			tx_bitslipboundaryselect    => tx_bitslipboundaryselect, -- tx_bitslipboundaryselect.export
-			pll_locked                  => pll_locked,               --               pll_locked.export
-			rx_serial_data              => rx_serial_data,           --           rx_serial_data.export
-			rx_runningdisp              => rx_runningdisp,           --           rx_runningdisp.export
-			rx_is_lockedtoref           => rx_is_lockedtoref,        --        rx_is_lockedtoref.export
-			rx_is_lockedtodata          => rx_is_lockedtodata,       --       rx_is_lockedtodata.export
-			rx_signaldetect             => rx_signaldetect,          --          rx_signaldetect.export
-			rx_bitslip                  => rx_bitslip,               --               rx_bitslip.export
-			tx_clkout                   => tx_clkout,                --                tx_clkout.export
-			rx_clkout                   => rx_clkout,                --                rx_clkout.export
-			tx_parallel_data            => tx_parallel_data,         --         tx_parallel_data.export
-			tx_datak                    => tx_datak,                 --                 tx_datak.export
-			rx_parallel_data            => rx_parallel_data,         --         rx_parallel_data.export
-			rx_datak                    => rx_datak,                 --                 rx_datak.export
-			reconfig_from_xcvr          => reconfig_from_xcvr,       --       reconfig_from_xcvr.reconfig_from_xcvr
-			reconfig_to_xcvr            => reconfig_to_xcvr,         --         reconfig_to_xcvr.reconfig_to_xcvr
-			rx_disperr                  => open,                     --              (terminated)
-			rx_errdetect                => open,                     --              (terminated)
-			rx_patterndetect            => open,                     --              (terminated)
-			rx_syncstatus               => open,                     --              (terminated)
-			rx_bitslipboundaryselectout => open,                     --              (terminated)
-			rx_enabyteord               => "00",                     --              (terminated)
-			rx_rmfifodatainserted       => open,                     --              (terminated)
-			rx_rmfifodatadeleted        => open,                     --              (terminated)
-			rx_rlv                      => open,                     --              (terminated)
-			rx_byteordflag              => open,                     --              (terminated)
-			tx_coreclkin                => "00",                     --              (terminated)
-			rx_coreclkin                => "00",                     --              (terminated)
-			rx_recovered_clk            => open,                     --              (terminated)
-			cdr_ref_clk                 => "0",                      --              (terminated)
-			tx_dispval                  => "00000000",               --              (terminated)
-			tx_forcedisp                => "00000000",               --              (terminated)
-			pll_powerdown               => "0",                      --              (terminated)
-			tx_digitalreset             => "00",                     --              (terminated)
-			tx_analogreset              => "00",                     --              (terminated)
-			tx_cal_busy                 => open,                     --              (terminated)
-			rx_digitalreset             => "00",                     --              (terminated)
-			rx_analogreset              => "00",                     --              (terminated)
-			rx_cal_busy                 => open,                     --              (terminated)
-			ext_pll_clk                 => "00"                      --              (terminated)
+			phy_mgmt_clk                => phy_mgmt_clk,         --       phy_mgmt_clk.clk
+			phy_mgmt_clk_reset          => phy_mgmt_clk_reset,   -- phy_mgmt_clk_reset.reset
+			phy_mgmt_address            => phy_mgmt_address,     --           phy_mgmt.address
+			phy_mgmt_read               => phy_mgmt_read,        --                   .read
+			phy_mgmt_readdata           => phy_mgmt_readdata,    --                   .readdata
+			phy_mgmt_waitrequest        => phy_mgmt_waitrequest, --                   .waitrequest
+			phy_mgmt_write              => phy_mgmt_write,       --                   .write
+			phy_mgmt_writedata          => phy_mgmt_writedata,   --                   .writedata
+			tx_ready                    => tx_ready,             --           tx_ready.export
+			rx_ready                    => rx_ready,             --           rx_ready.export
+			pll_ref_clk                 => pll_ref_clk,          --        pll_ref_clk.clk
+			tx_serial_data              => tx_serial_data,       --     tx_serial_data.export
+			tx_forceelecidle            => tx_forceelecidle,     --   tx_forceelecidle.export
+			pll_locked                  => pll_locked,           --         pll_locked.export
+			rx_serial_data              => rx_serial_data,       --     rx_serial_data.export
+			rx_runningdisp              => rx_runningdisp,       --     rx_runningdisp.export
+			rx_is_lockedtoref           => rx_is_lockedtoref,    --  rx_is_lockedtoref.export
+			rx_is_lockedtodata          => rx_is_lockedtodata,   -- rx_is_lockedtodata.export
+			rx_signaldetect             => rx_signaldetect,      --    rx_signaldetect.export
+			tx_clkout                   => tx_clkout,            --          tx_clkout.export
+			rx_clkout                   => rx_clkout,            --          rx_clkout.export
+			tx_parallel_data            => tx_parallel_data,     --   tx_parallel_data.export
+			tx_datak                    => tx_datak,             --           tx_datak.export
+			rx_parallel_data            => rx_parallel_data,     --   rx_parallel_data.export
+			rx_datak                    => rx_datak,             --           rx_datak.export
+			reconfig_from_xcvr          => reconfig_from_xcvr,   -- reconfig_from_xcvr.reconfig_from_xcvr
+			reconfig_to_xcvr            => reconfig_to_xcvr,     --   reconfig_to_xcvr.reconfig_to_xcvr
+			tx_bitslipboundaryselect    => "00000",              --        (terminated)
+			rx_disperr                  => open,                 --        (terminated)
+			rx_errdetect                => open,                 --        (terminated)
+			rx_patterndetect            => open,                 --        (terminated)
+			rx_syncstatus               => open,                 --        (terminated)
+			rx_bitslipboundaryselectout => open,                 --        (terminated)
+			rx_enabyteord               => "0",                  --        (terminated)
+			rx_bitslip                  => "0",                  --        (terminated)
+			rx_rmfifodatainserted       => open,                 --        (terminated)
+			rx_rmfifodatadeleted        => open,                 --        (terminated)
+			rx_rlv                      => open,                 --        (terminated)
+			rx_byteordflag              => open,                 --        (terminated)
+			tx_coreclkin                => "0",                  --        (terminated)
+			rx_coreclkin                => "0",                  --        (terminated)
+			rx_recovered_clk            => open,                 --        (terminated)
+			cdr_ref_clk                 => "0",                  --        (terminated)
+			tx_dispval                  => "0000",               --        (terminated)
+			tx_forcedisp                => "0000",               --        (terminated)
+			pll_powerdown               => "0",                  --        (terminated)
+			tx_digitalreset             => "0",                  --        (terminated)
+			tx_analogreset              => "0",                  --        (terminated)
+			tx_cal_busy                 => open,                 --        (terminated)
+			rx_digitalreset             => "0",                  --        (terminated)
+			rx_analogreset              => "0",                  --        (terminated)
+			rx_cal_busy                 => open,                 --        (terminated)
+			ext_pll_clk                 => "0"                   --        (terminated)
 		);
 
 end architecture rtl; -- of CustomPhy
@@ -325,8 +323,8 @@ end architecture rtl; -- of CustomPhy
 -- Retrieval info: 	<generic name="device_family" value="Cyclone V" />
 -- Retrieval info: 	<generic name="gui_parameter_rules" value="Custom" />
 -- Retrieval info: 	<generic name="operation_mode" value="Duplex" />
--- Retrieval info: 	<generic name="lanes" value="2" />
--- Retrieval info: 	<generic name="gui_bonding_enable" value="true" />
+-- Retrieval info: 	<generic name="lanes" value="1" />
+-- Retrieval info: 	<generic name="gui_bonding_enable" value="false" />
 -- Retrieval info: 	<generic name="gui_bonded_mode" value="xN" />
 -- Retrieval info: 	<generic name="gui_pma_bonding_mode" value="x1" />
 -- Retrieval info: 	<generic name="gui_deser_factor" value="32" />
@@ -336,7 +334,7 @@ end architecture rtl; -- of CustomPhy
 -- Retrieval info: 	<generic name="gui_base_data_rate" value="1250 Mbps" />
 -- Retrieval info: 	<generic name="gui_pll_refclk_freq" value="150.0 MHz" />
 -- Retrieval info: 	<generic name="en_synce_support" value="0" />
--- Retrieval info: 	<generic name="gui_tx_bitslip_enable" value="true" />
+-- Retrieval info: 	<generic name="gui_tx_bitslip_enable" value="false" />
 -- Retrieval info: 	<generic name="gui_rx_use_coreclk" value="false" />
 -- Retrieval info: 	<generic name="gui_tx_use_coreclk" value="false" />
 -- Retrieval info: 	<generic name="gui_rx_use_recovered_clk" value="false" />
@@ -346,13 +344,13 @@ end architecture rtl; -- of CustomPhy
 -- Retrieval info: 	<generic name="gui_use_8b10b_status" value="false" />
 -- Retrieval info: 	<generic name="std_tx_pcfifo_mode" value="low_latency" />
 -- Retrieval info: 	<generic name="std_rx_pcfifo_mode" value="low_latency" />
--- Retrieval info: 	<generic name="word_aligner_mode" value="bitslip" />
+-- Retrieval info: 	<generic name="word_aligner_mode" value="manual" />
 -- Retrieval info: 	<generic name="word_aligner_state_machine_datacnt" value="1" />
 -- Retrieval info: 	<generic name="word_aligner_state_machine_errcnt" value="1" />
 -- Retrieval info: 	<generic name="word_aligner_state_machine_patterncnt" value="10" />
 -- Retrieval info: 	<generic name="gui_use_wa_status" value="false" />
 -- Retrieval info: 	<generic name="word_aligner_pattern_length" value="10" />
--- Retrieval info: 	<generic name="word_align_pattern" value="0101111100" />
+-- Retrieval info: 	<generic name="word_align_pattern" value="0011111010" />
 -- Retrieval info: 	<generic name="gui_enable_run_length" value="false" />
 -- Retrieval info: 	<generic name="run_length_violation_checking" value="40" />
 -- Retrieval info: 	<generic name="use_rate_match_fifo" value="0" />

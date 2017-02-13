@@ -15,7 +15,6 @@ entity OOB_SignalDetect is
         rx_signaldetect  : in  std_logic;
 
         oobSignalToSend  : in  OOB_SIGNAL;
-        readyForNewSignal: out std_logic;
         oobRxIdle        : out std_logic;
         oobTxIdle        : out std_logic;
 
@@ -200,9 +199,6 @@ begin
                 txNextState <= IDLE;
         end case;
     end process;
-
-    readyForNewSignal <= '1' when txState = IDLE else
-                         '0';
 
     process(rxclkout, reset)
     begin
