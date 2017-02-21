@@ -24,8 +24,10 @@ package sata_defines is
     constant WTRMp    : std_logic_vector(31 downto 0) := x"5858B57C";
     constant X_RDYp   : std_logic_vector(31 downto 0) := x"5757B57C";
 
+    constant ALL_WORDS_SYNC : std_logic_vector(3 downto 0) := x"F";
 
-    constant SYNC_PATTERN   : std_logic_vector(7 downto 0)  := x"BC";
+    constant DATAK_28_3     : std_logic_vector(7 downto 0)  := x"7C";
+    constant DATAK_28_5     : std_logic_vector(7 downto 0)  := x"BC";
 
     constant DATAK_BYTE_ZERO  : std_logic_vector(3 downto 0)  := "0001";
     constant DATAK_BYTE_ONE   : std_logic_vector(3 downto 0)  := "0010";
@@ -33,12 +35,41 @@ package sata_defines is
     constant DATAK_BYTE_THREE : std_logic_vector(3 downto 0)  := "1000";
     constant DATAK_BYTE_NONE  : std_logic_vector(3 downto 0)  := "0000";
 
+
+    constant PHY_STATUS_LENGTH : integer := 3;
+    constant LINK_STATUS_LENGTH : integer := 2;
+    constant PHY_STATUS_DEFAULT : std_logic_vector(31 downto 0)  := (31 downto PHY_STATUS_LENGTH => '0') & "110";
+    constant LINK_STATUS_DEFAULT : std_logic_vector(31 downto 0) := (31 downto LINk_STATUS_LENGTH=> '0') & "10";
+    constant RX_DATA_FILL_DEFAULT : std_logic_vector(63 downto 0)  := ALIGNp & PHY_STATUS_DEFAULT;
+    constant TX_DATA_FILL_DEFAULT : std_logic_vector(63 downto 0)  := ALIGNp & LINK_STATUS_DEFAULT;
+
+
+
     -- status signals
-    constant PHYRDY         : std_logic_vector(31 downto 0) := x"0A0A0A0A";
-    constant PHYRDYn        : std_logic_vector(31 downto 0) := x"0A0A0A0A";
-    constant LRESET         : std_logic_vector(31 downto 0) := x"0A0A0A0A";
-    constant Dec_Err        : std_logic_vector(31 downto 0) := x"0A0A0A0A";
-    constant CRC            : std_logic_vector(31 downto 0) := x"0A0A0A0A";
+    -- constants (naming convention: c --> constant, l --> link layer)
+        -- trans_status_in
+    constant c_l_pause_transmit     : integer := 7;                     -- Asserted when Transport Layer is not ready to transmit
+    constant c_l_fifo_ready         : integer := 6;                     -- Asserted when Transport Layer FIFO has room for more data
+    constant c_l_transmit_request   : integer := 5;                     -- Asserted when Transport Layer wants to begin a transmission
+    constant c_l_data_done          : integer := 4;                     -- Asserted the clock cycle after the last of the Transport Layer data has been transmitted
+    constant c_l_escape             : integer := 3;                     -- Asserted when the Transport Layer wants to terminate a transmission
+    constant c_l_bad_fis            : integer := 2;                     -- Asserted at the end of a "read" when a bad FIS is received by the Transport Layer
+    constant c_l_error              : integer := 1;                     -- Asserted at the end of a "read" when there is a different error in the FIS received by the Transport Layer
+    constant c_l_good_fis           : integer := 0;                     -- Asserted at the end of a "read" when a good FIS is received by the Transport Layer
+        -- trans_status_out
+    constant c_l_link_idle          : integer := 5;                     -- Asserted when the Link Layer is in the Idle state and is ready for a transmit request
+    constant c_l_transmit_bad       : integer := 4;                     -- Asserted at the end of transmission to indicate in error
+    constant c_l_transmit_good      : integer := 3;                     -- Asserted at the end of transmission to successful transmission
+    constant c_l_crc_good           : integer := 2;                     -- Asserted when the CRC has been verified
+    constant c_l_comm_err           : integer := 1;                     -- Asserted when there is an error in the communication channel (PHYRDYn)
+    constant c_l_fail_transmit      : integer := 0;                     -- Asserted when the communication channel fails during transmission
+        -- phy_status_in
+    constant c_l_primitive_in       : integer := 2;                     -- Asserted when a valid primitive is being sent by the Physical Layer on the rx_data_in line
+    constant c_l_phyrdy             : integer := 1;                     -- Asserted when the Physical Layer has successfully established a communication channel
+    constant c_l_dec_err            : integer := 0;                     -- Asserted when there is an 8B10B encoding error
+        -- phy_status_out
+    constant c_l_primitive_out      : integer := 1;                     -- Asserted when a valid primitive is being sent to the Physical Layer on the tx_data_out line
+    constant c_l_clear_status       : integer := 0;                     -- Asserted to indicate to the Physical Layer to clear its status vector
 
     -- constants
     constant CHARS_PER_WORD           : integer     := 40;
@@ -59,7 +90,7 @@ package sata_defines is
 
     constant COMINIT_PAUSE_CHARS     : integer     := 480;
 --    constant COMINIT_PAUSE_COUNT      : integer     := COMINIT_PAUSE_CHARS / CHARS_PER_WORD;
-    constant COMINIT_PAUSE_COUNT      : integer     := COMINIT_PAUSE_CHARS / CHARS_PER_WORD - 1; -- Add minus 1 because counting from 0... probably not the best way to do this.
+    constant COMINIT_PAUSE_COUNT      : integer     := COMINIT_PAUSE_CHARS / CHARS_PER_WORD - 1; -- Add minus 1 because couniclitng from 0... probably not the best way to do this.
     constant MIN_COMINIT_DETECT_PAUSE_COUNT : integer    := COMINIT_PAUSE_COUNT - 2;
     constant MAX_COMINIT_DETECT_PAUSE_COUNT : integer    := COMINIT_PAUSE_COUNT + 2;
 

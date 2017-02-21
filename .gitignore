@@ -60,6 +60,8 @@
 !**/*.tbd
 ##
 !**/*.sof
+# signaltap files
+!**/*.stp
 ##
 ## tbd
 
