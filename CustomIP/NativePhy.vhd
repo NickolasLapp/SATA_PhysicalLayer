@@ -186,10 +186,10 @@ begin
 			bonded_mode                     => "non_bonded",
 			data_rate                       => "1500 Mbps",
 			pma_width                       => 20,
-			tx_pma_clk_div                  => 1,
+			tx_pma_clk_div                  => 2,
 			pll_reconfig_enable             => 1,
 			pll_external_enable             => 0,
-			pll_data_rate                   => "1500 Mbps",
+			pll_data_rate                   => "3000 Mbps",
 			pll_type                        => "CMU",
 			pma_bonding_mode                => "x1",
 			plls                            => 1,
@@ -340,21 +340,21 @@ begin
 			rx_std_polinv                  => "0"                                                                                 --            (terminated)
 		);
 
-	rx_runningdisp <= NativePhy_inst_rx_parallel_data(63 downto 63) & NativePhy_inst_rx_parallel_data(47 downto 47) & NativePhy_inst_rx_parallel_data(31 downto 31) & NativePhy_inst_rx_parallel_data(15 downto 15);
+	rx_errdetect <= NativePhy_inst_rx_parallel_data(57 downto 57) & NativePhy_inst_rx_parallel_data(41 downto 41) & NativePhy_inst_rx_parallel_data(25 downto 25) & NativePhy_inst_rx_parallel_data(9 downto 9);
 
-	rx_syncstatus <= NativePhy_inst_rx_parallel_data(58 downto 58) & NativePhy_inst_rx_parallel_data(42 downto 42) & NativePhy_inst_rx_parallel_data(26 downto 26) & NativePhy_inst_rx_parallel_data(10 downto 10);
+	rx_disperr <= NativePhy_inst_rx_parallel_data(59 downto 59) & NativePhy_inst_rx_parallel_data(43 downto 43) & NativePhy_inst_rx_parallel_data(27 downto 27) & NativePhy_inst_rx_parallel_data(11 downto 11);
 
 	rx_datak <= NativePhy_inst_rx_parallel_data(56 downto 56) & NativePhy_inst_rx_parallel_data(40 downto 40) & NativePhy_inst_rx_parallel_data(24 downto 24) & NativePhy_inst_rx_parallel_data(8 downto 8);
 
-	rx_patterndetect <= NativePhy_inst_rx_parallel_data(60 downto 60) & NativePhy_inst_rx_parallel_data(44 downto 44) & NativePhy_inst_rx_parallel_data(28 downto 28) & NativePhy_inst_rx_parallel_data(12 downto 12);
+	rx_runningdisp <= NativePhy_inst_rx_parallel_data(63 downto 63) & NativePhy_inst_rx_parallel_data(47 downto 47) & NativePhy_inst_rx_parallel_data(31 downto 31) & NativePhy_inst_rx_parallel_data(15 downto 15);
+
+	rx_syncstatus <= NativePhy_inst_rx_parallel_data(58 downto 58) & NativePhy_inst_rx_parallel_data(42 downto 42) & NativePhy_inst_rx_parallel_data(26 downto 26) & NativePhy_inst_rx_parallel_data(10 downto 10);
 
 	unused_rx_parallel_data <= NativePhy_inst_rx_parallel_data(62 downto 62) & NativePhy_inst_rx_parallel_data(61 downto 61) & NativePhy_inst_rx_parallel_data(46 downto 46) & NativePhy_inst_rx_parallel_data(45 downto 45) & NativePhy_inst_rx_parallel_data(30 downto 30) & NativePhy_inst_rx_parallel_data(29 downto 29) & NativePhy_inst_rx_parallel_data(14 downto 14) & NativePhy_inst_rx_parallel_data(13 downto 13);
 
 	rx_parallel_data <= NativePhy_inst_rx_parallel_data(55 downto 55) & NativePhy_inst_rx_parallel_data(54 downto 54) & NativePhy_inst_rx_parallel_data(53 downto 53) & NativePhy_inst_rx_parallel_data(52 downto 52) & NativePhy_inst_rx_parallel_data(51 downto 51) & NativePhy_inst_rx_parallel_data(50 downto 50) & NativePhy_inst_rx_parallel_data(49 downto 49) & NativePhy_inst_rx_parallel_data(48 downto 48) & NativePhy_inst_rx_parallel_data(39 downto 39) & NativePhy_inst_rx_parallel_data(38 downto 38) & NativePhy_inst_rx_parallel_data(37 downto 37) & NativePhy_inst_rx_parallel_data(36 downto 36) & NativePhy_inst_rx_parallel_data(35 downto 35) & NativePhy_inst_rx_parallel_data(34 downto 34) & NativePhy_inst_rx_parallel_data(33 downto 33) & NativePhy_inst_rx_parallel_data(32 downto 32) & NativePhy_inst_rx_parallel_data(23 downto 23) & NativePhy_inst_rx_parallel_data(22 downto 22) & NativePhy_inst_rx_parallel_data(21 downto 21) & NativePhy_inst_rx_parallel_data(20 downto 20) & NativePhy_inst_rx_parallel_data(19 downto 19) & NativePhy_inst_rx_parallel_data(18 downto 18) & NativePhy_inst_rx_parallel_data(17 downto 17) & NativePhy_inst_rx_parallel_data(16 downto 16) & NativePhy_inst_rx_parallel_data(7 downto 7) & NativePhy_inst_rx_parallel_data(6 downto 6) & NativePhy_inst_rx_parallel_data(5 downto 5) & NativePhy_inst_rx_parallel_data(4 downto 4) & NativePhy_inst_rx_parallel_data(3 downto 3) & NativePhy_inst_rx_parallel_data(2 downto 2) & NativePhy_inst_rx_parallel_data(1 downto 1) & NativePhy_inst_rx_parallel_data(0 downto 0);
 
-	rx_errdetect <= NativePhy_inst_rx_parallel_data(57 downto 57) & NativePhy_inst_rx_parallel_data(41 downto 41) & NativePhy_inst_rx_parallel_data(25 downto 25) & NativePhy_inst_rx_parallel_data(9 downto 9);
-
-	rx_disperr <= NativePhy_inst_rx_parallel_data(59 downto 59) & NativePhy_inst_rx_parallel_data(43 downto 43) & NativePhy_inst_rx_parallel_data(27 downto 27) & NativePhy_inst_rx_parallel_data(11 downto 11);
+	rx_patterndetect <= NativePhy_inst_rx_parallel_data(60 downto 60) & NativePhy_inst_rx_parallel_data(44 downto 44) & NativePhy_inst_rx_parallel_data(28 downto 28) & NativePhy_inst_rx_parallel_data(12 downto 12);
 
 end architecture rtl; -- of NativePhy
 -- Retrieval info: <?xml version="1.0"?>
@@ -397,7 +397,7 @@ end architecture rtl; -- of NativePhy
 -- Retrieval info: 	<generic name="enable_simple_interface" value="1" />
 -- Retrieval info: 	<generic name="set_data_rate" value="1500" />
 -- Retrieval info: 	<generic name="pma_direct_width" value="80" />
--- Retrieval info: 	<generic name="tx_pma_clk_div" value="1" />
+-- Retrieval info: 	<generic name="tx_pma_clk_div" value="2" />
 -- Retrieval info: 	<generic name="pll_reconfig_enable" value="1" />
 -- Retrieval info: 	<generic name="pll_external_enable" value="0" />
 -- Retrieval info: 	<generic name="plls" value="1" />

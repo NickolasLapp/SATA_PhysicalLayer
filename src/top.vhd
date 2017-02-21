@@ -18,7 +18,7 @@ entity top is
         USER_PB_FPGA1  : in  std_logic; -- PB1, used as alternative reset so that we can reset without resetting the clock control circuits
         USER_LED_FPGA0 : out std_logic  -- LED0 for heartbeat
         );
-END top;
+end top;
 
 architecture top_arch of top is
     -- top level signals
@@ -26,16 +26,15 @@ architecture top_arch of top is
     signal cpu_rst          : std_logic;
     signal cpu_rst_debounced: std_logic;
     signal pb_fpga1         : std_logic;
-    signal PHYRDY                   : std_logic;
 
     -- xcvr signals
     --PHY Control Signals
-    signal rx_clkout                : std_logic; -- use this to clock the receive datapath
-    signal tx_clkout                : std_logic; -- use this to clock the transmit datapath
+    signal rxclkout                : std_logic; -- use this to clock the receive datapath
+    signal txclkout                : std_logic; -- use this to clock the transmit datapath
     signal pll_locked               : std_logic; -- is the pll reference clock locked in
 
-    signal rx_parallel_data         : std_logic_vector(31 downto 0); -- received data
-    signal tx_parallel_data         : std_logic_vector(31 downto 0); -- data to transmit
+    signal rx_data         : std_logic_vector(31 downto 0); -- received data
+    signal tx_data         : std_logic_vector(31 downto 0); -- data to transmit
 
     signal tx_forceelecidle         : std_logic; -- force signal idle for OOB signaling
     signal rx_signaldetect          : std_logic; -- detect signal idle for OOB signaling
@@ -73,7 +72,83 @@ architecture top_arch of top is
     signal reconfig_to_xcvr         : std_logic_vector(139 downto 0);
     signal reconfig_busy            : std_logic;
 
-    signal oob_handshake_done       : std_logic;
+    -- link/phy hookup signals
+    signal phy_status_to_link       : std_logic_vector(PHY_STATUS_LENGTH-1 downto 0);
+    signal link_status_to_phy       : std_logic_vector(LINK_STATUS_LENGTH-1 downto 0);
+    signal tx_data_from_link        : std_logic_vector(31 downto 0);
+    signal rx_data_to_link          : std_logic_vector(31 downto 0);
+
+    signal trans_status_in          : std_logic_vector(7 downto 0);
+    signal trans_status_out         : std_logic_vector(5 downto 0);
+    signal trans_tx_data_in         : std_logic_vector(31 downto 0);
+    signal trans_rx_data_out        : std_logic_vector(31 downto 0);
+    signal rst_n                    : std_logic;
+
+    component transport_dummy is
+        port(
+                fabric_clk          :   in std_logic;
+                reset               :   in std_logic;
+
+                --Interface with link Layer
+                trans_status_to_link:   out std_logic_vector(7 downto 0);  -- [FIFO_RDY/n, transmit request, data complete, escape, bad FIS, error, good FIS]
+                link_status_to_trans:   in  std_logic_vector(5 downto 0);  -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
+                tx_data_to_link     :   out std_logic_vector(31 downto 0);
+                rx_data_from_link   :   in  std_logic_vector(31 downto 0)
+                );
+    end component transport_dummy;
+
+
+    component link_layer_32bit is
+    port(-- Input
+            clk             :   in std_logic;
+            rst_n           :   in std_logic;
+
+            --Interface with Transport Layer
+            trans_status_in :   in std_logic_vector(7 downto 0);        -- [FIFO_RDY/n, transmit request, data complete, escape, bad FIS, error, good FIS]
+            trans_status_out:   out std_logic_vector(5 downto 0);       -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
+            tx_data_in      :   in std_logic_vector(31 downto 0);
+            rx_data_out     :   out std_logic_vector(31 downto 0);
+
+            --Interface with Physical Layer
+            tx_data_out     :   out std_logic_vector(31 downto 0);
+            rx_data_in      :   in std_logic_vector(31 downto 0);
+            phy_status_in   :   in std_logic_vector(2 downto 0);        -- [primitive, PHYRDY/n, Dec_Err]
+            phy_status_out  :   out std_logic_vector(1 downto 0);       -- [primitive, clear status signals]
+            perform_init    :   out std_logic);
+    end component;
+
+    component phy_layer_32bit is
+        port(
+            fabric_clk_75 : in std_logic;           -- 50 MHz clock from AC18, driven by SL18860C
+            reset         : in std_logic;       -- CPU_RESETn pushbutton. (Debounce this). Pin AD27
+
+            --Interface with link layer
+            tx_data_from_link:   in std_logic_vector(31 downto 0);
+            rx_data_to_link  :   out std_logic_vector(31 downto 0);
+            phy_status_to_link : out std_logic_vector(PHY_STATUS_LENGTH-1 downto 0);
+            link_status_to_phy : in std_logic_vector(LINK_STATUS_LENGTH-1 downto 0);
+
+    --        perform_init     :   out std_logic); -- currently unused
+
+            --Interface with transceivers
+            rxclkout         : in std_logic;   -- recovered rx clock to clock receive datapath from XCVRs
+            txclkout         : in  std_logic;  -- tx clock from XCVRs to clock transmit datapath
+
+            rx_data : in  std_logic_vector(31 downto 0); --raw received data from XCVRs
+            rx_datak         : in  std_logic_vector(3 downto 0); --data or control symbol for receieved data
+            rx_signaldetect  : in  std_logic; -- detect oob received oob signals
+
+            tx_forceelecidle : out std_logic; -- send oob signals
+            tx_data : out std_logic_vector(31 downto 0); -- parallel data to transmit
+            tx_datak         : out std_logic_vector(3 downto 0); -- data or control symbol for transmitted data
+
+            do_word_align    : out std_logic; -- signal native phy to perform word align
+            rx_syncstatus    : in std_logic_vector(3 downto 0); -- detect word alignment successfull
+
+            rx_set_locktoref  : out std_logic; -- control transceiver locking characteristics
+            rx_set_locktodata : out std_logic -- control transceiver locking characteristics
+            );
+    end component phy_layer_32bit;
 
     component NativePhy is
         port (
@@ -167,28 +242,6 @@ architecture top_arch of top is
         );
     end component XCVR_Reconf;
 
-    component PhyLayerInit is
-        port(
-            rxclkout         : in  std_logic;
-            txclkout         : in  std_logic;
-            reset            : in  std_logic;
-
-            rx_parallel_data : in  std_logic_vector(31 downto 0);
-            rx_datak         : in  std_logic_vector(3 downto 0);
-            rx_signaldetect  : in  std_logic;
-
-            tx_forceelecidle : out std_logic;
-            tx_parallel_data : out std_logic_vector(31 downto 0);
-            tx_datak         : out std_logic_vector(3 downto 0);
-
-            do_word_align    : out std_logic;
-            rx_syncstatus    : in std_logic_vector(3 downto 0);
-
-            oob_handshake_done: out std_logic;
-            PHYRDY         : out std_logic
-        );
-    end component PhyLayerInit;
-
     component Debounce is
       port(
         clk50      : in  std_logic;
@@ -198,28 +251,65 @@ architecture top_arch of top is
 
     begin
 
-    phyLayerInit1 : PhyLayerInit
-        port map(
-            rxclkout         => rx_clkout,
-            txclkout         => tx_clkout,
-            reset            => reset,
+    i_transdummy1 : transport_dummy
+    port map(
+            fabric_clk => txclkout,
+            reset      => reset,
+            trans_status_to_link => trans_status_in,
+            link_status_to_trans => trans_status_out,
+            tx_data_to_link      => trans_tx_data_in,
+            rx_data_from_link    => trans_rx_data_out
+        );
 
-            rx_parallel_data => rx_parallel_data,
+    i_linkLayer1 : link_layer_32bit
+    port map(   -- Input
+            clk             => txclkout,
+            rst_n           => rst_n,
+
+            --Interface with Transport Layer
+            trans_status_in => trans_status_in,
+            trans_status_out=> trans_status_out,
+            tx_data_in      => trans_tx_data_in,
+            rx_data_out     => trans_rx_data_out,
+
+            --Interface with Physical Layer
+            tx_data_out     => tx_data_from_link,
+            rx_data_in      => rx_data_to_link,
+            phy_status_in   => phy_status_to_link,
+            phy_status_out  => link_status_to_phy
+--            perform_init    => perform_init
+        );
+
+    i_phy_layer_1 : phy_layer_32bit
+    port map(
+            fabric_clk_75 => txclkout,
+            reset         => reset,
+
+            --Interface with link layer
+            tx_data_from_link    => tx_data_from_link,
+            rx_data_to_link      => rx_data_to_link,
+            phy_status_to_link   => phy_status_to_link,
+            link_status_to_phy   => link_status_to_phy,
+    --        perform_init     :   out std_logic); -- currently unused
+
+            --Interface with transceivers
+            rxclkout         => rxclkout,
+            txclkout         => txclkout,
+
+            rx_data          => rx_data,
             rx_datak         => rx_datak,
             rx_signaldetect  => rx_signaldetect,
 
             tx_forceelecidle => tx_forceelecidle,
-            tx_parallel_data => tx_parallel_data,
+            tx_data          => tx_data,
             tx_datak         => tx_datak,
 
             do_word_align    => do_word_align,
             rx_syncstatus    => rx_syncstatus,
 
-            oob_handshake_done => oob_handshake_done,
-            PHYRDY           => PHYRDY
+            rx_set_locktoref  => rx_set_locktoref,
+            rx_set_locktodata => rx_set_locktodata
         );
-
-
 
     native1 : NativePhy
         port  map(
@@ -237,10 +327,10 @@ architecture top_arch of top is
             rx_set_locktoref        => rx_set_locktoref,
             rx_is_lockedtoref       => rx_is_lockedtoref,
             rx_is_lockedtodata      => rx_is_lockedtodata,
-            tx_std_coreclkin        => tx_clkout,
-            rx_std_coreclkin        => rx_clkout,
-            tx_std_clkout           => tx_clkout,
-            rx_std_clkout           => rx_clkout,
+            tx_std_coreclkin        => txclkout,
+            rx_std_coreclkin        => rxclkout,
+            tx_std_clkout           => txclkout,
+            rx_std_clkout           => rxclkout,
             rx_std_wa_patternalign  => do_word_align,
             tx_std_elecidle         => tx_forceelecidle,
             rx_std_signaldetect     => rx_signaldetect,
@@ -248,10 +338,10 @@ architecture top_arch of top is
             rx_cal_busy             => rx_cal_busy,
             reconfig_to_xcvr        => reconfig_to_xcvr,
             reconfig_from_xcvr      => reconfig_from_xcvr,
-            tx_parallel_data        => tx_parallel_data,
+            tx_parallel_data        => tx_data,
             tx_datak                => tx_datak,
             unused_tx_parallel_data => (others => '0'), -- don't need the unused parallel data
-            rx_parallel_data        => rx_parallel_data,
+            rx_parallel_data        => rx_data,
             rx_datak                => rx_datak,
             rx_errdetect            => rx_errdetect, -- code violation or disparity error
             rx_disperr              => rx_disperr,   -- disparity error only
@@ -319,6 +409,11 @@ architecture top_arch of top is
         port map(clk50, USER_PB_FPGA1, pb_fpga1);
 
     reset <= (not pb_fpga1) or cpu_rst_debounced;
+    rst_n <= not reset;
+    USER_LED_FPGA0 <= '1' when pb_fpga1 = '1' else '0';
 
-    USER_LED_FPGA0 <= '1' when PHYRDY = '1' or pb_fpga1 = '1' else '0';
+    -- dummy status and data values
+--    link_status_to_phy <= LINK_STATUS_DEFAULT(LINK_STATUS_LENGTH-1 downto 0);
+--    tx_data_from_link  <= SYNCp;
+
 end top_arch;

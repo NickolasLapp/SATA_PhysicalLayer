@@ -11,7 +11,7 @@ entity byte_orderer is
         reset            : in  std_logic;
         do_byte_order    : in  std_logic;
 
-        rx_parallel_data : in  std_logic_vector(31 downto 0);
+        rx_data          : in  std_logic_vector(31 downto 0);
         rx_datak         : in  std_logic_vector(3 downto 0);
 
         is_byte_ordered  : out std_logic;
@@ -40,7 +40,7 @@ begin
             receive_byte_buffer(0) <= (others => '0');
             rx_datak_prev <= DATAK_BYTE_NONE;
          elsif(rising_edge(rxclkout)) then
-            receive_byte_buffer(3 downto 0) <= (rx_parallel_data(31 downto 24), rx_parallel_data(23 downto 16), rx_parallel_data(15 downto 8), rx_parallel_data(7 downto 0));
+            receive_byte_buffer(3 downto 0) <= (rx_data(31 downto 24), rx_data(23 downto 16), rx_data(15 downto 8), rx_data(7 downto 0));
             receive_byte_buffer(7 downto 4) <= receive_byte_buffer(3 downto 0);
             rx_datak_prev <= rx_datak;
 
@@ -63,7 +63,7 @@ begin
             elsif(ordered_datak = DATAK_BYTE_THREE) then
                 rx_ordered_data <= receive_byte_buffer(2) & receive_byte_buffer(1) & receive_byte_buffer(0) & receive_byte_buffer(7);
             else
-                rx_ordered_data <= (others => 'X');
+                rx_ordered_data <= (others => '0');
             end if;
         end if;
     end process;

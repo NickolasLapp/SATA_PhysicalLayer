@@ -11,7 +11,7 @@ entity OOB_SignalDetect is
         txclkout         : in  std_logic;
         reset            : in  std_logic;
 
-        rx_parallel_data : in  std_logic_vector(31 downto 0);
+        rx_data : in  std_logic_vector(31 downto 0);
         rx_signaldetect  : in  std_logic;
 
         oobSignalToSend  : in  OOB_SIGNAL;
@@ -232,11 +232,11 @@ begin
     end process;
 
     -- idle when txState = IDLE, and no signal to send coming up
-    process(rxclkout, reset)
+    process(txclkout, reset)
     begin
         if(reset = '1') then
             oobTxIdle <= '0';
-        elsif(rising_edge(rxclkout)) then
+        elsif(rising_edge(txclkout)) then
             if(txState = IDLE and oobSignalToSend = NONE) then
                 oobTxIdle <= '1';
             else

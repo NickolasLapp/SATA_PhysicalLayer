@@ -72,7 +72,7 @@ begin
         master_reset <= '0';
         wait for 10000 ns;
         pll_locked <= '1';
-        wait for falling_edge(tx_digitalreset);
+        wait until (tx_digitalreset'event and tx_digitalreset = '0');
         wait for 55 ns;
         busy <= '0';
         wait for 25000 ns;
