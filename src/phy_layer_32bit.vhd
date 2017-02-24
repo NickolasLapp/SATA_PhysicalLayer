@@ -53,6 +53,7 @@ architecture phy_layer_32bit_arch of phy_layer_32bit is
     signal tx_datak_phy_init        : std_logic_vector(3 downto 0);
 
     signal rx_data_from_phy         : std_logic_vector(31 downto 0);
+    signal primitive_recvd          : std_logic;
 
     component PhyLayerInit is
         port(
@@ -61,6 +62,7 @@ architecture phy_layer_32bit_arch of phy_layer_32bit is
             reset            : in  std_logic;
 
             rx_ordered_data  : out std_logic_vector(31 downto 0);
+            primitive_recvd  : out std_logic;
 
             rx_data          : in  std_logic_vector(31 downto 0);
             rx_datak         : in  std_logic_vector(3 downto 0);
@@ -107,6 +109,7 @@ begin
             reset            => reset,
 
             rx_ordered_data  => rx_data_from_phy,
+            primitive_recvd  => primitive_recvd,
 
             rx_data          => rx_data,
             rx_datak         => rx_datak,
@@ -142,7 +145,7 @@ begin
         );
 
     -- assign signals into vector for fifo bufferring
-    phy_status_to_link_s(c_l_primitive_in) <= '0' when rx_datak = DATAK_BYTE_NONE else '1';
+    phy_status_to_link_s(c_l_primitive_in) <= primitive_recvd;
     phy_status_to_link_s(c_l_phyrdy) <= PHYRDY;
     phy_status_to_link_s(c_l_dec_err) <= '0';
     phy_status_to_link_s(31 downto PHY_STATUS_LENGTH) <= (others => '0');
