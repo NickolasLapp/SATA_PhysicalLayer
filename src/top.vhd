@@ -254,7 +254,7 @@ architecture top_arch of top is
     i_transdummy1 : transport_dummy
     port map(
             fabric_clk => txclkout,
-            reset      => reset,
+            reset      => rst_n,
             trans_status_to_link => trans_status_in,
             link_status_to_trans => trans_status_out,
             tx_data_to_link      => trans_tx_data_in,
