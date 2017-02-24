@@ -12,6 +12,7 @@ entity PhyLayerInit is
         reset            : in  std_logic;
 
         rx_ordered_data  : out std_logic_vector(31 downto 0);
+        primitive_recvd  : out std_logic;
 
         rx_data          : in  std_logic_vector(31 downto 0);
         rx_datak         : in  std_logic_vector(3 downto 0);
@@ -27,7 +28,7 @@ entity PhyLayerInit is
         rx_set_locktodata: out std_logic;
         rx_set_locktoref : out std_logic;
 
-        PHYRDY             : out std_logic
+        PHYRDY           : out std_logic
     );
 end entity PhyLayerInit;
 
@@ -54,7 +55,8 @@ architecture PhyLayerInit_arch of PhyLayerInit is
 
     signal consecutiveNonAligns : std_logic_vector(3 downto 0) := (others => '0');
 
-    signal rx_ordered_data_s : std_logic_vector(31 downto 0);
+    signal rx_ordered_data_s  : std_logic_vector(31 downto 0);
+    signal primitive_recvd_s : std_logic;
     signal do_byte_order   : std_logic;
     signal is_byte_ordered : std_logic;
 
@@ -68,10 +70,8 @@ architecture PhyLayerInit_arch of PhyLayerInit is
             rx_datak         : in  std_logic_vector(3 downto 0);
 
             is_byte_ordered  : out std_logic;
-            rx_ordered_data  : out std_logic_vector(31 downto 0)
-        );
-    end component byte_orderer;
-
+            rx_ordered_data  : out std_logic_vector(31 downto 0);
+            primitive_recvd_s: out std_logic
 
     component OOB_SignalDetect is
       port(
@@ -119,16 +119,19 @@ architecture PhyLayerInit_arch of PhyLayerInit is
             rx_datak         => rx_datak,
 
             is_byte_ordered  => is_byte_ordered,
-            rx_ordered_data  => rx_ordered_data_s
+            rx_ordered_data  => rx_ordered_data_s,
+            primitive_recvd  => primitive_recvd_s 
         );
 
     process(rxclkout, reset)
     begin
         if(reset = '1') then
             rx_ordered_data <= (others => '0');
+            primitive_recvd <= '0';
             consecutiveNonAligns <= (others => '0');
         elsif(rising_edge(rxclkout)) then
             rx_ordered_data <= rx_ordered_data_s;
+            primitive_recvd <= primitive_recvd_s;
             if(rx_ordered_data_s(7 downto 0) = DATAK_28_3) then
                 consecutiveNonAligns <= consecutiveNonAligns + 1;
             else
