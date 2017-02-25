@@ -71,7 +71,9 @@ architecture PhyLayerInit_arch of PhyLayerInit is
 
             is_byte_ordered  : out std_logic;
             rx_ordered_data  : out std_logic_vector(31 downto 0);
-            primitive_recvd_s: out std_logic
+            primitive_recvd  : out std_logic
+        );
+    end component byte_orderer;
 
     component OOB_SignalDetect is
       port(

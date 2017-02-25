@@ -2,7 +2,7 @@
   <display_tree gui_logging_enabled="0">
     <display_branch instance="auto_signaltap_0" log="USE_GLOBAL_TEMP" signal_set="USE_GLOBAL_TEMP" trigger="USE_GLOBAL_TEMP"/>
     <display_branch instance="auto_signaltap_1" log="USE_GLOBAL_TEMP" signal_set="USE_GLOBAL_TEMP" trigger="USE_GLOBAL_TEMP"/>
-    <display_branch instance="auto_signaltap_2" log="USE_GLOBAL_TEMP" signal_set="USE_GLOBAL_TEMP" trigger="USE_GLOBAL_TEMP"/>
+    <display_branch instance="auto_signaltap_2" signal_set="USE_GLOBAL_TEMP" trigger="USE_GLOBAL_TEMP"/>
   </display_tree>
   <instance enabled="false" entity_name="sld_signaltap" is_auto_node="yes" is_expanded="true" name="auto_signaltap_0" source_file="sld_signaltap.vhd">
     <node_ip_info instance_id="0" mfg_id="110" node_id="0" version="6"/>
@@ -2028,15 +2028,16 @@
         <trigger_in_editor/>
         <trigger_out_editor/>
       </presentation>
-      <trigger CRC="11ECAC36" attribute_mem_mode="false" gap_record="true" global_temp="1" is_expanded="true" name="trigger: 2017/02/20 15:16:47  #1" position="center" power_up_trigger_mode="false" record_data_gap="true" segment_size="2048" storage_mode="off" storage_qualifier_disabled="no" storage_qualifier_port_is_pin="false" storage_qualifier_port_name="auto_stp_external_storage_qualifier" storage_qualifier_port_tap_mode="classic" trigger_type="circular">
+      <trigger CRC="11ECAC36" attribute_mem_mode="false" gap_record="true" global_temp="1" is_expanded="true" name="trigger: 2017/02/20 15:16:47  #1" position="center" power_up_trigger_mode="false" record_data_gap="true" segment_size="2048" storage_mode="off" storage_qualifier_disabled="no" storage_qualifier_port_is_pin="true" storage_qualifier_port_name="auto_stp_external_storage_qualifier" storage_qualifier_port_tap_mode="classic" trigger_type="circular">
         <power_up_trigger position="pre" storage_qualifier_disabled="no"/>
         <events use_custom_flow_control="no">
-          <level enabled="yes" name="condition1" type="advanced"><power_up enabled="yes">
+          <level enabled="yes" name="condition1" type="advanced">
+            <power_up enabled="yes">
               <power_up_expression><![CDATA['detector_0':(mbpm('X',{'phy_layer_32bit:i_phy_layer_1|PhyLayerInit:phyLayerInit1|PHYRDY'}))]]>
               </power_up_expression>
-            </power_up>
-            <expression><![CDATA['detector_0':(mbpm('R',{'phy_layer_32bit:i_phy_layer_1|PhyLayerInit:phyLayerInit1|PHYRDY'}))]]>
-            </expression><op_node>
+            </power_up><expression><![CDATA['detector_0':(mbpm('R',{'phy_layer_32bit:i_phy_layer_1|PhyLayerInit:phyLayerInit1|PHYRDY'}))]]>
+            </expression>
+            <op_node>
               <op_node expanded="1" left="758" selected="1" top="127" type="Advanced Trigger Level Result">
                 <op_node expanded="1" left="628" name="detector_0" pattern="R" selected="1" top="87" type="Edge &amp; Level Detector">
                   <op_node left="498" name="phy_layer_32bit:i_phy_layer_1|PhyLayerInit:phyLayerInit1|PHYRDY" selected="1" top="127" type="Node"/>
@@ -3067,15 +3068,16 @@ trigger;]]>
         <trigger_in_editor/>
         <trigger_out_editor/>
       </presentation>
-      <trigger CRC="752A5D26" attribute_mem_mode="false" gap_record="true" global_temp="1" is_expanded="true" name="trigger: 2017/02/20 18:27:17  #1" position="pre" power_up_trigger_mode="false" record_data_gap="true" segment_size="64" storage_mode="off" storage_qualifier_disabled="no" storage_qualifier_port_is_pin="false" storage_qualifier_port_name="auto_stp_external_storage_qualifier" storage_qualifier_port_tap_mode="classic" trigger_type="circular">
+      <trigger CRC="752A5D26" attribute_mem_mode="false" gap_record="true" global_temp="1" is_expanded="true" name="trigger: 2017/02/20 18:27:17  #1" position="pre" power_up_trigger_mode="false" record_data_gap="true" segment_size="64" storage_mode="off" storage_qualifier_disabled="no" storage_qualifier_port_is_pin="true" storage_qualifier_port_name="auto_stp_external_storage_qualifier" storage_qualifier_port_tap_mode="classic" trigger_type="circular">
         <power_up_trigger position="pre" storage_qualifier_disabled="no"/>
         <events use_custom_flow_control="no">
-          <level enabled="yes" name="condition1" type="advanced"><power_up enabled="yes">
+          <level enabled="yes" name="condition1" type="advanced">
+            <power_up enabled="yes">
               <power_up_expression><![CDATA['detector_0':(mbpm('X',{'phy_layer_32bit:i_phy_layer_1|PhyLayerInit:phyLayerInit1|phyInitState.HP1_HR_Reset'}))]]>
               </power_up_expression>
-            </power_up>
-            <expression><![CDATA['detector_0':(mbpm('F',{'phy_layer_32bit:i_phy_layer_1|PhyLayerInit:phyLayerInit1|phyInitState.HP1_HR_Reset'}))]]>
-            </expression><op_node>
+            </power_up><expression><![CDATA['detector_0':(mbpm('F',{'phy_layer_32bit:i_phy_layer_1|PhyLayerInit:phyLayerInit1|phyInitState.HP1_HR_Reset'}))]]>
+            </expression>
+            <op_node>
               <op_node expanded="1" first_port_empty="1" left="663" top="201" type="Advanced Trigger Level Result">
                 <op_node expanded="1" first_port_empty="1" left="533" name="detector_0" pattern="F" top="161" type="Edge &amp; Level Detector">
                   <op_node left="403" name="phy_layer_32bit:i_phy_layer_1|PhyLayerInit:phyLayerInit1|phyInitState.HP1_HR_Reset" top="201" type="Node"/>
@@ -3083,9 +3085,9 @@ trigger;]]>
               </op_node>
             </op_node>
           </level>
-          <level enabled="yes" name="condition2" type="basic"><power_up enabled="yes">
-            </power_up>
-            <op_node/>
+          <level enabled="yes" name="condition2" type="basic">
+            <power_up enabled="yes">
+            </power_up><op_node/>
           </level>
         </events>
         <storage_qualifier_events>
@@ -4046,7 +4048,7 @@ trigger;]]>
             <node data_index="47" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvEOF" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="47" tap_mode="classic" trigger_index="11" type="unknown"/>
             <node data_index="48" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvHold" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="48" tap_mode="classic" trigger_index="12" type="unknown"/>
             <node data_index="50" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvrHold" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="50" tap_mode="classic" trigger_index="14" type="unknown"/>
-            <node data_index="49" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="true" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="49" tap_mode="classic" trigger_index="4" type="unknown"/>
+            <node data_index="49" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="true" is_storage_input="true" is_trigger_input="true" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="49" tap_mode="classic" trigger_index="4" type="unknown"/>
             <node data_index="44" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RESET" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="44" tap_mode="classic" trigger_index="8" type="unknown"/>
             <node data_index="51" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_SendAlign" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="51" tap_mode="classic" trigger_index="15" type="unknown"/>
             <node data_index="53" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="true" name="link_layer_32bit:i_linkLayer1|current_state.L_SendChkRdy" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="53" tap_mode="classic" trigger_index="5" type="unknown"/>
@@ -4377,7 +4379,7 @@ trigger;]]>
             <net data_index="47" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvEOF" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="47" tap_mode="classic" trigger_index="11" type="unknown"/>
             <net data_index="48" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvHold" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="48" tap_mode="classic" trigger_index="12" type="unknown"/>
             <net data_index="50" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvrHold" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="50" tap_mode="classic" trigger_index="14" type="unknown"/>
-            <net data_index="49" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="true" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="49" tap_mode="classic" trigger_index="4" type="unknown"/>
+            <net data_index="49" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="true" is_storage_input="true" is_trigger_input="true" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="49" tap_mode="classic" trigger_index="4" type="unknown"/>
             <net data_index="44" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RESET" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="44" tap_mode="classic" trigger_index="8" type="unknown"/>
             <net data_index="51" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_SendAlign" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="51" tap_mode="classic" trigger_index="15" type="unknown"/>
             <net data_index="53" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="true" name="link_layer_32bit:i_linkLayer1|current_state.L_SendChkRdy" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="53" tap_mode="classic" trigger_index="5" type="unknown"/>
@@ -4708,7 +4710,7 @@ trigger;]]>
             <net data_index="47" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvEOF" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="47" tap_mode="classic" trigger_index="11" type="unknown"/>
             <net data_index="48" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvHold" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="48" tap_mode="classic" trigger_index="12" type="unknown"/>
             <net data_index="50" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvrHold" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="50" tap_mode="classic" trigger_index="14" type="unknown"/>
-            <net data_index="49" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="true" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="49" tap_mode="classic" trigger_index="4" type="unknown"/>
+            <net data_index="49" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="true" is_storage_input="true" is_trigger_input="true" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="49" tap_mode="classic" trigger_index="4" type="unknown"/>
             <net data_index="44" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_RESET" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="44" tap_mode="classic" trigger_index="8" type="unknown"/>
             <net data_index="51" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="false" name="link_layer_32bit:i_linkLayer1|current_state.L_SendAlign" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="51" tap_mode="classic" trigger_index="15" type="unknown"/>
             <net data_index="53" duplicate_name_allowed="false" is_data_input="true" is_node_valid="true" is_selected="false" is_storage_input="true" is_trigger_input="true" name="link_layer_32bit:i_linkLayer1|current_state.L_SendChkRdy" pwr_storage-0="dont_care" pwr_storage-1="dont_care" pwr_storage-2="dont_care" storage-0="dont_care" storage-1="dont_care" storage-2="dont_care" storage_index="53" tap_mode="classic" trigger_index="5" type="unknown"/>
@@ -4726,14 +4728,17 @@ trigger;]]>
         <trigger_in_editor/>
         <trigger_out_editor/>
       </presentation>
-      <trigger CRC="C8BE6218" attribute_mem_mode="false" gap_record="true" global_temp="1" is_expanded="true" name="trigger: 2017/02/24 13:13:43  #1" position="pre" power_up_trigger_mode="false" record_data_gap="true" segment_size="512" storage_mode="off" storage_qualifier_disabled="no" storage_qualifier_port_is_pin="false" storage_qualifier_port_name="auto_stp_external_storage_qualifier" storage_qualifier_port_tap_mode="classic" trigger_type="circular">
+      <trigger CRC="C8BE6218" attribute_mem_mode="false" gap_record="true" global_temp="1" is_expanded="true" name="trigger: 2017/02/24 13:13:43  #1" position="pre" power_up_trigger_mode="false" record_data_gap="true" segment_size="512" storage_mode="off" storage_qualifier_disabled="no" storage_qualifier_port_is_pin="true" storage_qualifier_port_name="auto_stp_external_storage_qualifier" storage_qualifier_port_tap_mode="classic" trigger_type="circular">
         <power_up_trigger position="pre" storage_qualifier_disabled="no"/>
         <events use_custom_flow_control="no">
-          <level enabled="yes" name="condition1" type="advanced"><power_up enabled="yes">
+          <level enabled="yes" name="condition1" type="advanced">
+            <power_up enabled="yes">
               <power_up_expression><![CDATA['detector_0':(mbpm('X',{'link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo'}))]]>
               </power_up_expression>
-            </power_up><expression><![CDATA['detector_0':(mbpm('R',{'link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo'}))]]>
-            </expression><op_node>
+            </power_up>
+            <expression><![CDATA['detector_0':(mbpm('R',{'link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo'}))]]>
+            </expression>
+            <op_node>
               <op_node expanded="1" first_port_empty="1" left="709" top="209" type="Advanced Trigger Level Result">
                 <op_node expanded="1" first_port_empty="1" left="579" name="detector_0" pattern="R" top="169" type="Edge &amp; Level Detector">
                   <op_node left="449" name="link_layer_32bit:i_linkLayer1|current_state.L_RcvWaitFifo" top="209" type="Node"/>
@@ -4765,15 +4770,15 @@ trigger;]]>
       </trigger>
     </signal_set>
     <position_info>
-      <single attribute="active tab" value="0"/>
-      <single attribute="data horizontal scroll position" value="254"/>
-      <single attribute="data vertical scroll position" value="7"/>
+      <single attribute="active tab" value="2"/>
+      <single attribute="data horizontal scroll position" value="0"/>
+      <single attribute="data vertical scroll position" value="0"/>
       <single attribute="setup horizontal scroll position" value="0"/>
       <single attribute="setup vertical scroll position" value="43"/>
       <single attribute="zoom level denominator" value="1"/>
-      <single attribute="zoom level numerator" value="128"/>
+      <single attribute="zoom level numerator" value="4"/>
       <single attribute="zoom offset denominator" value="1"/>
-      <single attribute="zoom offset numerator" value="1016"/>
+      <single attribute="zoom offset numerator" value="32512"/>
     </position_info>
   </instance>
   <global_info>

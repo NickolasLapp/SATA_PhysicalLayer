@@ -15,8 +15,8 @@ entity byte_orderer is
         rx_datak         : in  std_logic_vector(3 downto 0);
 
         is_byte_ordered  : out std_logic;
-        rx_ordered_data  : out std_logic_vector(31 downto 0)
-        primitive_recvd  : out std_logic;
+        rx_ordered_data  : out std_logic_vector(31 downto 0);
+        primitive_recvd  : out std_logic
     );
 end entity byte_orderer;
 
@@ -74,7 +74,6 @@ begin
             else
                 rx_ordered_data <= (others => '0');
                 primitive_recvd <= '0';
-            else
             end if;
         end if;
     end process;
