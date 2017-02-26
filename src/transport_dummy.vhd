@@ -23,8 +23,10 @@ architecture rtl of transport_dummy is
     type data_arr is array(0 to 5) of std_logic_vector(31 downto 0);
     type stat_arr is array(0 to 5) of std_logic_vector(7 downto 0);
 
-   -- constant dataToSend : data_arr := (x"00358027", x"40000000", x"00000000", x"00000001", x"00000000", (others => 'X'));
-    constant dataToSend : data_arr := (x"00358027", x"e0bbcb40", x"0000000d", x"00000001", x"00000000", (others => 'X'));
+ --   constant dataToSend : data_arr := (x"00358027", x"40000000", x"00000000", x"00000001", x"00000000", (others => 'X'));
+ --   constant dataToSend : data_arr := (x"00358027", x"e0bbcb40", x"0000000d", x"00000001", x"00000000", (others => 'X'));
+    constant dataToSend : data_arr := (x"00358027", x"e01DCD65", x"00000000", x"00000001", x"00000000", (others => 'X'));
+
     constant statToSend : stat_arr := ("01100000", "01100000", "01100000", "01100000", "01100000", "11010000");
 
     signal idx : integer range 0 to 1000001;
