@@ -1,5 +1,3 @@
-
-
 -- ########################################################################
 -- CRC Engine RTL Design 
 -- Copyright (C) www.ElectronicDesignworks.com 
