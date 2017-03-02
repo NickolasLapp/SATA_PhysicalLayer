@@ -36,10 +36,10 @@ package sata_defines is
     constant DATAK_BYTE_NONE  : std_logic_vector(3 downto 0)  := "0000";
 
 
-    constant PHY_STATUS_LENGTH : integer := 3;
+    constant PHY_STATUS_LENGTH  : integer := 4;
     constant LINK_STATUS_LENGTH : integer := 2;
-    constant PHY_STATUS_DEFAULT : std_logic_vector(31 downto 0)  := (31 downto PHY_STATUS_LENGTH => '0') & "110";
-    constant LINK_STATUS_DEFAULT : std_logic_vector(31 downto 0) := (31 downto LINk_STATUS_LENGTH=> '0') & "10";
+    constant PHY_STATUS_DEFAULT : std_logic_vector(31 downto 0)  := (31 downto PHY_STATUS_LENGTH => '0') & "1110";
+    constant LINK_STATUS_DEFAULT : std_logic_vector(31 downto 0) := (31 downto LINK_STATUS_LENGTH=> '0') & "10";
     constant RX_DATA_FILL_DEFAULT : std_logic_vector(63 downto 0)  := ALIGNp & PHY_STATUS_DEFAULT;
     constant TX_DATA_FILL_DEFAULT : std_logic_vector(63 downto 0)  := ALIGNp & LINK_STATUS_DEFAULT;
 
@@ -64,6 +64,7 @@ package sata_defines is
     constant c_l_comm_err           : integer := 1;                     -- Asserted when there is an error in the communication channel (PHYRDYn)
     constant c_l_fail_transmit      : integer := 0;                     -- Asserted when the communication channel fails during transmission
         -- phy_status_in
+    constant c_l_pause_all          : integer := 3;
     constant c_l_primitive_in       : integer := 2;                     -- Asserted when a valid primitive is being sent by the Physical Layer on the rx_data_in line
     constant c_l_phyrdy             : integer := 1;                     -- Asserted when the Physical Layer has successfully established a communication channel
     constant c_l_dec_err            : integer := 0;                     -- Asserted when there is an 8B10B encoding error
