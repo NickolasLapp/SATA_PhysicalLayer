@@ -24,6 +24,10 @@ entity rate_match_blk is
 end entity rate_match_blk;
 
 architecture rate_match_blk_arch of rate_match_blk is
+    signal send_pause    : std_logic;
+    signal send_periodic_align : std_logic;
+    signal align_counter : std_logic_vector(7 downto 0);
+
     signal tx_buff_empty : std_logic;
     signal tx_buff_full  : std_logic;
     signal tx_buff_usage_r : std_logic_vector(7 downto 0);
@@ -65,6 +69,35 @@ architecture rate_match_blk_arch of rate_match_blk is
     end component;
 
 begin
+
+    send_pause <= rx_buff_empty = '1' or tx_buff_full = '1' or send_periodic_align = '1';
+
+    rx_data_to_link <= RX_DATA_FILL_DEFAULT when rx_readreq_prev = '0' or send_pause = '1' else
+                       rx_data_to_link_s; 
+
+    rx_readreq <= '1' when rx_buff_empty = '0' else '1';
+    rx_writereq <= '1' when rx_data_from_phy(63 downto 32) \= ALIGNp else '0';
+
+    tx_data_to_phy <= TX_DATA_FILL_DEFAULT when tx_readreq_prev = '0' else
+                      tx_data_to_phy_s;
+
+    tx_readreq <= '1' when tx_buff_empty = '0' and send_periodic_align = '0' else '1';
+    tx_writereq <= '1' when send_pause = '1';
+
+    process(rst, txclkout)
+    begin
+        if(rst = '1') then
+            align_counter <= (others => '0');
+            send_periodic_align <= '0';
+        else if(rising_edge(txclkout) then
+            if(align_counter < 2) then
+                send_periodic_align <= '1';
+            else
+                send_periodic_align <= '0';
+            end if; 
+            align_counter <= align_counter + '1';
+        end if;
+    end process;
 
     process(rst, fabric_clk)
     begin
