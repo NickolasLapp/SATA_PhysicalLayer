@@ -20,24 +20,24 @@
 --  You should have received a copy of the GNU General Public License
 --  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --
--- ******************************** 
---          Source Code
--- ******************************** 
--- Copyright (C) 2009 OutputLogic.com 
--- This source file may be used and distributed without restriction 
--- provided that this copyright statement is not removed from the file 
--- and that any derivative work contains the original copyright notice 
--- and the associated disclaimer. 
--- 
--- THIS SOURCE FILE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS 
--- OR IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED    
--- WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE. 
+-- ********************************
+-- 			Source Code
+-- ********************************
+-- Copyright (C) 2009 OutputLogic.com
+-- This source file may be used and distributed without restriction
+-- provided that this copyright statement is not removed from the file
+-- and that any derivative work contains the original copyright notice
+-- and the associated disclaimer.
+--
+-- THIS SOURCE FILE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS
+-- OR IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+-- WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 -------------------------------------------------------------------------------
 -- scrambler module for data(31:0)
 --   lfsr(15:0)=1+x^4+x^13+x^15+x^16;
 -------------------------------------------------------------------------------
 
-library ieee; 
+library ieee;
 use ieee.std_logic_1164.all;
 
 ----------------------------------------------------------------------------
@@ -45,31 +45,32 @@ use ieee.std_logic_1164.all;
 --! @brief      link layer lfsr scrambler
 --! @details    Takes input data performs scrambling via a linear feedback shift register
 --!
---! @param      clk                 system clock
---! @param      rst_n               active low reset
---! @param      scram_en            input enable for the scrambler
---! @param      scram_rst           input reset for the scrambler, independent of the system reset
---! @param      data_in             input data to be scrambled
---! @param      data_out            output scrambled data
+--! @param      clk	    			system clock
+--! @param      rst_n           	active low reset
+--! @param      scram_en    		input enable for the scrambler
+--! @param      scram_rst	     	input reset for the scrambler, independent of the system reset
+--! @param      data_in			    input data to be scrambled
+--! @param		data_out			output scrambled data
 --
 ----------------------------------------------------------------------------
 
-entity scrambler is 
-  port (clk         : in std_logic;
-        rst_n       : in std_logic;
-        scram_en    : in std_logic;
-        scram_rst   : in std_logic;
-        data_in     : in std_logic_vector (31 downto 0);
-        data_out    : out std_logic_vector (31 downto 0));
+entity scrambler is
+  port (clk 		: in std_logic;
+		rst_n		: in std_logic;
+		scram_en	: in std_logic;
+		scram_rst	: in std_logic;
+		scram_rdy	: out std_logic;
+		data_in 	: in std_logic_vector (31 downto 0);
+		data_out 	: out std_logic_vector (31 downto 0));
 end scrambler;
 
-architecture scrambler_arch of scrambler is 
+architecture scrambler_arch of scrambler is
 -- internal signals
-  signal data_c: std_logic_vector (31 downto 0);        -- signal to hold the scrambled data during the calculation
-  signal lfsr_q: std_logic_vector (15 downto 0);        -- signal to hold the lfsr value used in the calculation
-  signal lfsr_c: std_logic_vector (15 downto 0);        -- signal to hold the lfsr value during the calculation
-begin   
-    -- calculate the new lfsr value
+  signal data_c: std_logic_vector (31 downto 0);		-- signal to hold the scrambled data during the calculation
+  signal lfsr_q: std_logic_vector (15 downto 0);		-- signal to hold the lfsr value used in the calculation
+  signal lfsr_c: std_logic_vector (15 downto 0);		-- signal to hold the lfsr value during the calculation
+begin
+	-- calculate the new lfsr value
     lfsr_c(0) <= lfsr_q(0) xor lfsr_q(5) xor lfsr_q(6) xor lfsr_q(7) xor lfsr_q(10) xor lfsr_q(11) xor lfsr_q(12) xor lfsr_q(14) xor lfsr_q(15);
     lfsr_c(1) <= lfsr_q(0) xor lfsr_q(1) xor lfsr_q(6) xor lfsr_q(7) xor lfsr_q(8) xor lfsr_q(11) xor lfsr_q(12) xor lfsr_q(13) xor lfsr_q(15);
     lfsr_c(2) <= lfsr_q(1) xor lfsr_q(2) xor lfsr_q(7) xor lfsr_q(8) xor lfsr_q(9) xor lfsr_q(12) xor lfsr_q(13) xor lfsr_q(14);
@@ -87,7 +88,7 @@ begin
     lfsr_c(14) <= lfsr_q(3) xor lfsr_q(6) xor lfsr_q(8) xor lfsr_q(11) xor lfsr_q(12) xor lfsr_q(14);
     lfsr_c(15) <= lfsr_q(4) xor lfsr_q(5) xor lfsr_q(6) xor lfsr_q(9) xor lfsr_q(10) xor lfsr_q(11) xor lfsr_q(13) xor lfsr_q(14);
 
-    -- compute the scrambled data
+	-- compute the scrambled data
     data_c(0)  <= data_in(0)  xor lfsr_q(15);
     data_c(1)  <= data_in(1)  xor lfsr_q(14) xor lfsr_q(15);
     data_c(2)  <= data_in(2)  xor lfsr_q(13) xor lfsr_q(14) xor lfsr_q(15);
@@ -121,28 +122,31 @@ begin
     data_c(30) <= data_in(30) xor lfsr_q(0) xor lfsr_q(1) xor lfsr_q(6) xor lfsr_q(7) xor lfsr_q(8) xor lfsr_q(11) xor lfsr_q(12) xor lfsr_q(13) xor lfsr_q(15);
     data_c(31) <= data_in(31) xor lfsr_q(0) xor lfsr_q(5) xor lfsr_q(6) xor lfsr_q(7) xor lfsr_q(10) xor lfsr_q(11) xor lfsr_q(12) xor lfsr_q(14) xor lfsr_q(15);
 
-    process (clk,rst_n) begin 
-      if (rst_n = '0') then                                             -- reset
-        lfsr_q <= b"1111111111111111";                              -- return to seed value for consistent initial condition
-        data_out <= x"00000000";            -- clear the output
-      elsif (rising_edge(clk)) then 
-        if (scram_rst = '0') then                                   -- if the scrambler reset has been activated, return to the seed value (starting the scrambler over)
+    process (clk,rst_n) begin
+      if (rst_n = '0') then 											-- reset
+        lfsr_q <= b"1111111111111111";								-- return to seed value for consistent initial condition
+        data_out <= x"00000000";			-- clear the output
+      elsif (rising_edge(clk)) then
+        if (scram_rst = '0') then 									-- if the scrambler reset has been activated, return to the seed value (starting the scrambler over)
           lfsr_q <= b"1111111111111111";
-          data_out <= x"00000000";          -- clear the output
-        elsif (scram_en = '1') then 
-          lfsr_q <= lfsr_c;                                         -- update the lfsr value to be used in the calculation with the result of the previous calculation
-          data_out <= data_c;                                       -- assign the output data
-        elsif (scram_en = '0') then
-            data_out <= x"00000000";    -- clear the output when paused
-        --elsif(scram_en = '1') then 
-         --   data_out <= data_c;                                       -- assign the output data
-         -- data_out <= data_in;
-        end if; 
+		  data_out <= x"00000000";			-- clear the output
+		  scram_rdy <= '0';
+        elsif (scram_en = '1') then
+          lfsr_q <= lfsr_c; 										-- update the lfsr value to be used in the calculation with the result of the previous calculation
+		  data_out <= data_c;
+		  scram_rdy <= '1';
+		elsif (scram_en = '0') then
+		--  data_out <= x"00000000";	-- clear the output when paused
+		--  scram_rdy <= '0';
+		--elsif (scram_en = '1') then
+       --   data_out <= data_c; 										-- assign the output data
+		 -- data_out <= data_in;											-- scrambler off
+       	end if;
 
-       -- if (scram_en = '1') then 
-      --    data_out <= data_c;                                       -- assign the output data
-         -- data_out <= data_in;
-      --  end if; 
-     end if; 
-    end process; 
-end architecture scrambler_arch; 
+        --if (scram_en = '1') then
+         -- data_out <= data_c; 										-- assign the output data
+		 -- data_out <= data_in;											-- scrambler off
+       --	end if;
+      end if;
+    end process;
+end architecture scrambler_arch;
