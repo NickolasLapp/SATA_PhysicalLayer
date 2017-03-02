@@ -18,7 +18,7 @@ architecture behavioral of tb_transport_dummy is
 
                 --Interface with link Layer
                 trans_status_to_link:   out std_logic_vector(7 downto 0);  -- [FIFO_RDY/n, transmit request, data complete, escape, bad FIS, error, good FIS]
-                link_status_to_trans:   in  std_logic_vector(5 downto 0);  -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
+                link_status_to_trans:   in  std_logic_vector(6 downto 0);  -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
                 tx_data_to_link     :   out std_logic_vector(31 downto 0);
                 rx_data_from_link   :   in  std_logic_vector(31 downto 0)
                 );
@@ -28,7 +28,7 @@ architecture behavioral of tb_transport_dummy is
     signal rst        : std_logic := '0';
 
     signal trans_status_to_link : std_logic_vector(7 downto 0);
-    signal link_status_to_trans : std_logic_vector(5 downto 0);
+    signal link_status_to_trans : std_logic_vector(6 downto 0);
     signal tx_data_to_link      : std_logic_vector(31 downto 0);
     signal rx_data_from_link    : std_logic_vector(31 downto 0);
 

@@ -12,7 +12,7 @@ entity transport_dummy is
 
             --Interface with link Layer
             trans_status_to_link:   out std_logic_vector(7 downto 0);  -- [FIFO_RDY/n, transmit request, data complete, escape, bad FIS, error, good FIS]
-            link_status_to_trans:   in  std_logic_vector(5 downto 0);  -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
+            link_status_to_trans:   in  std_logic_vector(6 downto 0);  -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
             tx_data_to_link     :   out std_logic_vector(31 downto 0);
             rx_data_from_link   :   in  std_logic_vector(31 downto 0)
             );
@@ -52,18 +52,18 @@ architecture rtl of transport_dummy is
 begin
 
     link_rdy <= link_status_to_trans(5);
-    
+
     trans_status_to_link(7 downto 6) <= "01";
     trans_status_to_link(4 downto 0) <= "00000";
 
     process(fabric_clk, reset)
     begin
-        if(reset = '0') then 
+        if(reset = '0') then
             idx <= 0;
             trans_status_to_link(5) <= '0';
             tx_data_to_link <= (others => '0');
         elsif(rising_edge(fabric_clk)) then
-            if(link_rdy = '0' and idx = 0) then    
+            if(link_rdy = '0' and idx = 0) then
                 tx_data_to_link <= dataToSend(0);
                 trans_status_to_link(5) <= '1';
                 idx <= 0;
@@ -73,7 +73,7 @@ begin
             elsif(idx < 1000000) then
                 --if(idx < 3) then
                 --    trans_status_to_link(5) <= '1';
-                --else 
+                --else
                 --    trans_status_to_link(5) <= '0';
                 --end if;
                 trans_status_to_link(5) <= '0';

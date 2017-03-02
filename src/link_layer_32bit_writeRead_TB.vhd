@@ -1,6 +1,6 @@
 -- Hannah D. Mohr
 -- 02/08/2017
--- This test bench runs the Link Layer through a basic write followed by a basic read of the same data (encoded) with the CRC appended. 
+-- This test bench runs the Link Layer through a basic write followed by a basic read of the same data (encoded) with the CRC appended.
 -- This test is under optimal condition, where there are no pauses, holds, or errors interrupting the data
 -- The expected outcome of this test bench is that the read will move into states GoodCRC and GoodEnd after showing the 1, 2, 3, 4 output data values
 -- Note that the read is initiated by the Physical Layer. It needs to be determined how the Physical Layer knows to send X_RDYp
@@ -13,9 +13,9 @@ entity link_layer_32bit_TB is
 end entity;
 
 architecture link_layer_32bit_TB_arch of link_layer_32bit_TB is
-  
+
   constant t_clk_per : time := 50 ns;
-  
+
   component link_layer_32bit
    port(-- Input
 			clock				:	in std_logic;
@@ -32,16 +32,16 @@ architecture link_layer_32bit_TB_arch of link_layer_32bit_TB is
 			rx_data_in			:	in std_logic_vector(31 downto 0);
 			phy_status_in		:	in std_logic_vector(1 downto 0);		-- [PHYRDY/n, Dec_Err]
 			phy_status_out		:	out std_logic_vector(0 downto 0);		-- [clear status signals]
-			
+
 			perform_init		:	out std_logic);
   end component;
- 
- 
+
+
  -- Test bench signals
   signal clk_TB   				: std_logic;
   signal rst_n_TB 				: std_logic;
-  
-  signal trans_status_in_TB  	: std_logic_vector(7 downto 0); 
+
+  signal trans_status_in_TB  	: std_logic_vector(7 downto 0);
   signal trans_status_out_TB  	: std_logic_vector(2 downto 0);
   signal tx_data_in_TB			: std_logic_vector(31 downto 0);
   signal rx_data_out_TB			: std_logic_vector(31 downto 0);
@@ -50,11 +50,11 @@ architecture link_layer_32bit_TB_arch of link_layer_32bit_TB is
   signal rx_data_in_TB			: std_logic_vector(31 downto 0);
   signal phy_status_in_TB		: std_logic_vector(1 downto 0);		-- [PHYRDY/n, Dec_Err]
   signal phy_status_out_TB		: std_logic_vector(0 downto 0);		-- [clear status signals]
-  
+
   signal perform_init_TB 		: std_logic;
- 
+
 begin
-    
+
   DUT1 : link_layer_32bit port map (
 			-- Input
 			clock				=> clk_TB,
@@ -72,21 +72,21 @@ begin
 			phy_status_in		=> phy_status_in_TB,
 			phy_status_out		=> phy_status_out_TB,
 			perform_init		=> perform_init_TB);
-	
+
 -----------------------------------------------
       CLOCK_STIM : process
        begin
-          clk_TB <= '0'; wait for 0.5*t_clk_per; 
-          clk_TB <= '1'; wait for 0.5*t_clk_per; 
+          clk_TB <= '0'; wait for 0.5*t_clk_per;
+          clk_TB <= '1'; wait for 0.5*t_clk_per;
        end process;
------------------------------------------------      
+-----------------------------------------------
       RESET_STIM : process
        begin
-          rst_n_TB <= '0'; wait for 1.5*t_clk_per; 
-          rst_n_TB <= '1'; wait; 
+          rst_n_TB <= '0'; wait for 1.5*t_clk_per;
+          rst_n_TB <= '1'; wait;
        end process;
------------------------------------------------      
-	  
+-----------------------------------------------
+
 	  DIN_STIM : process
        begin
 			-- reset
@@ -95,12 +95,12 @@ begin
 			phy_status_in_TB(0) 		<= '0';
 			rx_data_in_TB 				<= x"00000000";
 			tx_data_in_TB 				<= x"00000000";
-			
-			wait for 3.5*t_clk_per; 					-- reset occurring 
+
+			wait for 3.5*t_clk_per; 					-- reset occurring
 			-- initialize
 			phy_status_in_TB(1) 		<= '1';			-- PHYRDY
 			wait for 3.0*t_clk_per; 					-- SendAlign, Idle
-			
+
 			-- start write
 			trans_status_in_TB(5)	 	<= '1';			-- Transport Request
 			wait for 1.0*t_clk_per;
@@ -122,9 +122,9 @@ begin
 			wait for 2.0*t_clk_per;
 			-- Physical received data
 			rx_data_in_TB				<= R_OKp;
-			
+
 			wait for 5.0*t_clk_per;			-- time between write and read
-			
+
 			-- start read
 			rx_data_in_TB(31 downto 0) <= X_RDYp;		-- physical layer ready to send data
 			trans_status_in_TB(6) <= '1';				-- FIFO has space
@@ -150,9 +150,9 @@ begin
 			wait for 3.0*t_clk_per;
 			-- return to Idle
 			rx_data_in_TB(31 downto 0) <= SYNCp;
-			
-            wait;       
+
+            wait;
        end process;
-  
+
 end architecture;
 
