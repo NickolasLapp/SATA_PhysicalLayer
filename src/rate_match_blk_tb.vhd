@@ -17,17 +17,28 @@ architecture rate_match_blk_tb_arch of rate_match_blk_tb is
     signal rxclkout  : std_logic := '0';
     signal txclkout  : std_logic := '0';
     signal rx_data_from_phy : std_logic_vector(63 downto 0) := (others => '0');-- x"0000000a";
+    signal rx_data_from_phy_data : std_logic_vector(31 downto 0);
+    signal rx_data_from_phy_status : std_logic_vector(PHY_STATUS_LENGTH-1 downto 0);
+
     signal tx_data_to_phy : std_logic_vector(63 downto 0) := (others => '0');
+    signal tx_data_to_phy_data : std_logic_vector(31 downto 0);
+    signal tx_data_to_phy_status : std_logic_vector(LINK_STATUS_LENGTH-1 downto 0);
 
     -- to link layer
     signal rx_data_to_link    : std_logic_vector(63 downto 0) := (others => '0');
+    signal rx_data_to_link_data: std_logic_vector(31 downto 0) := (others => '0');
+    signal rx_data_to_link_status: std_logic_vector(PHY_STATUS_LENGTH-1 downto 0) := (others => '0');
+
     signal tx_data_from_link  : std_logic_vector(63 downto 0) := (others => '0');--x"00000001";
+    signal tx_data_from_link_data  : std_logic_vector(31 downto 0) := (others => '0');--x"00000001";
+    signal tx_data_from_link_status: std_logic_vector(LINK_STATUS_LENGTH-1 downto 0) := (others => '0');--x"00000001";
 
     constant TbPeriod : time := 20 ns;
     constant CLK75_PERIOD : time := 20 ns;
-    constant RxClkoutPeriod : time := 21 ns;
-    constant TxClkoutPeriod : time := 22 ns;
+    constant RxClkoutPeriod : time := 20 ns;
+    constant TxClkoutPeriod : time := 20 ns;
     signal TbSimEnded : std_logic := '0';
+
 
     component rate_match_blk
         port
@@ -77,23 +88,46 @@ begin
 
     stimuli_rx : process
     begin
-        rx_data_from_phy  <= x"0000000000000001";--(others => '0');
+        rx_data_from_phy  <= x"0000000000000000";--(others => '0');
+        rx_data_from_phy_data  <= (others => '0');
+        rx_data_from_phy_status(PHY_STATUS_LENGTH-1 downto 0) <= "0110";
         wait until rst = '0';
         for I in 0 to 30000 loop
             wait until rising_edge(rxclkout);
-            rx_data_from_phy <= rx_data_from_phy + '1';
+            if(I mod 255 < 2) then
+                rx_data_from_phy <= ALIGNp & x"00000000";
+                rx_data_from_phy_data <= ALIGNp;
+            elsif(I mod 255 = 2) then
+                rx_data_from_phy <= (others => '0');
+                rx_data_from_phy(63 downto 32) <= (others => '0');
+                rx_data_from_phy(PHY_STATUS_LENGTH-1 downto 0) <= rx_data_from_phy_status;
+            else
+                rx_data_from_phy_data <= rx_data_from_phy_data + '1';
+                rx_data_from_phy(63 downto 32) <= (rx_data_from_phy_data + '1');
+                rx_data_from_phy(PHY_STATUS_LENGTH-1 downto 0) <= rx_data_from_phy_status;
+            end if;
         end loop;
     end process;
 
     stimuli_tx : process
     begin
-        tx_data_from_link <= x"000000000000000c";--(others => '0');
+        tx_data_from_link <= x"0000000000000000";
         wait until rst = '0';
         for I in 0 to 30000 loop
             wait until rising_edge(fabric_clk);
-            tx_data_from_link <= tx_data_from_link + '1';
+            if(rx_data_to_link(c_l_pause_all) /= '1' and rx_data_to_link(c_l_phyrdy) = '1') then
+                tx_data_from_link(63 downto 32) <= tx_data_from_link_data + '1';
+                tx_data_from_link_data <= tx_data_from_link_data + '1';
+            end if;
         end loop;
     end process;
+
+    rx_data_to_link_data <= rx_data_to_link(63 downto 32);
+    rx_data_to_link_status <= rx_data_to_link(PHY_STATUS_LENGTH-1 downto 0);
+
+
+    tx_data_to_phy_data <= tx_data_to_phy(63 downto 32);
+    tx_data_to_phy_status <= tx_data_to_phy(LINK_STATUS_LENGTH-1 downto 0);
 
     rxclkout <= not rxclkout after RxClkoutPeriod/2 when rst = '0' else '0';
     txclkout <= not txclkout after TxClkoutPeriod/2 when rst = '0' else '0';

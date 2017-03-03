@@ -52,21 +52,24 @@ ARCHITECTURE behave OF crc_gen_32 IS
 
 BEGIN
 
-s_soc_process : PROCESS(clk, rst_n)
-BEGIN
-IF(rst_n = '0') THEN
-    s_soc <= '0';
- elsif(rising_edge(clk)) then
-    IF(data_valid = '0') THEN
-         s_soc <= soc;
-    else
-        s_soc <= '0';
-    END IF;
- END IF;
-END PROCESS s_soc_process;
+--s_soc_process : PROCESS(clk, rst_n)
+--BEGIN
+--IF(rst_n = '0') THEN
+--    s_soc <= '0';
+-- elsif(rising_edge(clk)) then
+--    IF(data_valid = '0') THEN
+--         s_soc <= soc;
+--    else
+--        s_soc <= '0';
+--    END IF;
+-- END IF;
+--END PROCESS s_soc_process;
 
 
-crc_i    <= crc_const when s_soc = '1' else
+--crc_i    <= crc_const when s_soc = '1' else
+--            crc_r;
+
+crc_i    <= crc_const when soc = '1' else
             crc_r;
 
 crc_c(0) <= data(0) XOR data(6) XOR data(9) XOR data(10) XOR data(24) XOR crc_i(0) XOR crc_i(24) XOR data(29) XOR crc_i(29) XOR data(28) XOR crc_i(28) XOR crc_i(10) XOR data(26) XOR crc_i(26) XOR crc_i(9) XOR data(25) XOR crc_i(25) XOR data(12) XOR data(16) XOR data(30) XOR crc_i(6) XOR crc_i(30) XOR crc_i(16) XOR data(31) XOR crc_i(31) XOR crc_i(12);
@@ -103,7 +106,7 @@ crc_c(30) <= data(4) XOR data(7) XOR data(8) XOR data(22) XOR crc_i(22) XOR data
 crc_c(31) <= data(5) XOR data(8) XOR data(9) XOR data(23) XOR crc_i(23) XOR data(28) XOR crc_i(28) XOR data(27) XOR crc_i(27) XOR crc_i(9) XOR data(25) XOR crc_i(25) XOR crc_i(8) XOR data(24) XOR crc_i(24) XOR data(11) XOR data(15) XOR data(29) XOR crc_i(5) XOR crc_i(29) XOR crc_i(15) XOR data(31) XOR crc_i(31) XOR data(30) XOR crc_i(30) XOR crc_i(11);
 
 
-crc_gen_process : PROCESS(clk, rst_n, data_valid)
+crc_gen_process : PROCESS(clk, rst_n)
 BEGIN
  IF(rst_n = '0') THEN
     crc_r <= crc_const;

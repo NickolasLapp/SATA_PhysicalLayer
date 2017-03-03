@@ -30,23 +30,19 @@ architecture rate_match_blk_arch of rate_match_blk is
 
     signal tx_buff_empty : std_logic;
     signal tx_buff_full  : std_logic;
-    signal tx_buff_usage_r : std_logic_vector(7 downto 0);
-    signal tx_buff_usage_w : std_logic_vector(7 downto 0);
+    signal tx_buff_usage_r : std_logic_vector(2 downto 0);
+    signal tx_buff_usage_w : std_logic_vector(2 downto 0);
 
     signal tx_readreq : std_logic;
     signal tx_writereq : std_logic;
-    signal tx_readreq_prev : std_logic;
-    signal tx_writereq_prev : std_logic;
 
     signal rx_buff_empty : std_logic;
     signal rx_buff_full  : std_logic;
-    signal rx_buff_usage_r : std_logic_vector(7 downto 0);
-    signal rx_buff_usage_w : std_logic_vector(7 downto 0);
+    signal rx_buff_usage_r : std_logic_vector(2 downto 0);
+    signal rx_buff_usage_w : std_logic_vector(2 downto 0);
 
     signal rx_readreq : std_logic;
     signal rx_writereq : std_logic;
-    signal rx_readreq_prev : std_logic;
-    signal rx_writereq_prev : std_logic;
 
     signal rx_data_to_link_s : std_logic_vector(63 downto 0);
     signal tx_data_to_phy_s  : std_logic_vector(63 downto 0);
@@ -62,108 +58,107 @@ architecture rate_match_blk_arch of rate_match_blk is
             wrreq       : in std_logic ; -- write clock (asserted as write data valid?)
             q           : out std_logic_vector (63 downto 0); -- read data out
             rdempty     : out std_logic ; -- is fifo empty (read request invalid)
-            rdusedw     : out std_logic_vector (7 downto 0); -- number of words available to read
+            rdusedw     : out std_logic_vector (2 downto 0); -- number of words available to read
             wrfull      : out std_logic ; -- is fifo full (write request invalid)
-            wrusedw     : out std_logic_vector (7 downto 0) -- number of words written (should be same as rdusedw?)
+            wrusedw     : out std_logic_vector (2 downto 0) -- number of words written (should be same as rdusedw?)
         );
     end component;
 
 begin
 
-    send_pause <= rx_buff_empty = '1' or tx_buff_full = '1' or send_periodic_align = '1';
+    process(rx_buff_empty, tx_buff_empty, tx_buff_full, rst, send_periodic_align, tx_data_to_phy_s, rx_data_to_link_s)
+    begin
+        if(rst = '1') then
+                rx_data_to_link <= (others => '0');
+                tx_data_to_phy  <= (others => '0');
+                rx_readreq <= '0';
+                tx_readreq <= '0';
+                send_pause <= '0';
+        else
+            if(send_periodic_align = '0') then
+                if(tx_buff_full = '1') then
+                    rx_data_to_link <= RX_DATA_FILL_PAUSED;
+                    tx_data_to_phy  <= tx_data_to_phy_s;
+                    rx_readreq <= '0';
+                    tx_readreq <= '1';
+                    send_pause <= '1';
+                elsif(rx_buff_empty='1' and tx_buff_empty='1') then                -- Both empty. Send default signals either way
+                    rx_data_to_link <= RX_DATA_FILL_PAUSED;
+                    tx_data_to_phy  <= TX_DATA_FILL_DEFAULT;
+                    rx_readreq <= '0';
+                    tx_readreq <= '0';
+                    send_pause <= '1';
+                elsif(rx_buff_empty='1' and tx_buff_empty='0') then             -- Empty TX buffer, send default rx buffer;
+                    rx_data_to_link <= RX_DATA_FILL_PAUSED;
+                    tx_data_to_phy <= tx_data_to_phy_s;
+                    rx_readreq <= '0';
+                    tx_readreq <= '1';
+                    send_pause <= '1';
+                elsif(rx_buff_empty='0' and tx_buff_empty='1') then
+                    rx_data_to_link <= rx_data_to_link_s;
+                    tx_data_to_phy <= TX_DATA_FILL_DEFAULT;
+                    rx_readreq <= '1';
+                    tx_readreq <= '0';
+                    send_pause <= '0';
+                else --(rx_buff_empty='0' and tx_buff_empty='0') then
+                    rx_data_to_link <= rx_data_to_link_s;
+                    tx_data_to_phy <= tx_data_to_phy_s;
+                    rx_readreq <= '1';
+                    tx_readreq <= '1';
+                    send_pause <= '0';
+                end if;
+            else -- (send_periodic_align = '1') then
+                tx_readreq <= '0';
+                tx_data_to_phy <= TX_DATA_FILL_DEFAULT;
+                if(tx_buff_full = '1') then
+                    rx_data_to_link <= RX_DATA_FILL_PAUSED;
+                    rx_readreq <= '0';
+                    send_pause <= '1';
+                elsif(rx_buff_empty='1') then
+                    rx_data_to_link <=  RX_DATA_FILL_PAUSED;
+                    rx_readreq <= '0';
+                    send_pause <= '1';
+                else --(rx_buff_empty='0') then
+                    rx_data_to_link <= rx_data_to_link_s;
+                    rx_readreq <= '1';
+                    send_pause <= '0';
+                end if;
+            end if;
+        end if;
+    end process;
 
-    rx_data_to_link <= RX_DATA_FILL_DEFAULT when rx_readreq_prev = '0' or send_pause = '1' else
-                       rx_data_to_link_s; 
+    process(rst, rx_data_from_phy, rx_writereq, send_pause)
+    begin
+        if(rst = '1') then
+            rx_writereq <= '0';
+            tx_writereq <= '0';
+        else
+            if(rx_data_from_phy(63 downto 32) = ALIGNp) then
+                rx_writereq <= '0';
+            else
+                rx_writereq <= '1';
+            end if;
 
-    rx_readreq <= '1' when rx_buff_empty = '0' else '1';
-    rx_writereq <= '1' when rx_data_from_phy(63 downto 32) \= ALIGNp else '0';
-
-    tx_data_to_phy <= TX_DATA_FILL_DEFAULT when tx_readreq_prev = '0' else
-                      tx_data_to_phy_s;
-
-    tx_readreq <= '1' when tx_buff_empty = '0' and send_periodic_align = '0' else '1';
-    tx_writereq <= '1' when send_pause = '1';
+            if(send_pause = '1') then
+                tx_writereq <= '0';
+            else
+                tx_writereq <= '1';
+            end if;
+        end if;
+    end process;
 
     process(rst, txclkout)
     begin
         if(rst = '1') then
             align_counter <= (others => '0');
             send_periodic_align <= '0';
-        else if(rising_edge(txclkout) then
+        elsif(rising_edge(txclkout)) then
             if(align_counter < 2) then
                 send_periodic_align <= '1';
             else
                 send_periodic_align <= '0';
-            end if; 
+            end if;
             align_counter <= align_counter + '1';
-        end if;
-    end process;
-
-    process(rst, fabric_clk)
-    begin
-        if(rst = '1') then
-            rx_readreq <= '0';
-            rx_readreq_prev <= '0';
-        elsif(rising_edge(fabric_clk)) then
-            rx_readreq_prev <= rx_readreq;
-            if(rx_readreq='0' or rx_readreq_prev='0') then
-                rx_data_to_link <= RX_DATA_FILL_DEFAULT;
-            else
-                rx_data_to_link <= rx_data_to_link_s;
-            end if;
-
-            if(rx_buff_empty = '0') then
-                rx_readreq <= '1';
-            else
-                rx_readreq <= '0';
-            end if;
-        end if;
-    end process;
-
-    process(rst, fabric_clk)
-    begin
-        if(rst = '1') then
-            tx_writereq <= '0';
-        elsif(rising_edge(fabric_clk)) then
-            if(tx_buff_full = '0') then
-                tx_writereq <= '1';
-            else
-                tx_writereq <= '0';
-            end if;
-        end if;
-    end process;
-
-    process(rst, txclkout)
-    begin
-        if(rst = '1') then
-            tx_readreq <= '0';
-            tx_readreq_prev <= '0';
-        elsif(rising_edge(txclkout)) then
-            if(tx_readreq='0' or tx_readreq_prev='0') then
-                tx_data_to_phy <= TX_DATA_FILL_DEFAULT;
-            else
-                tx_data_to_phy <= tx_data_to_phy_s;
-            end if;
-
-            tx_readreq_prev <= tx_readreq;
-            if(tx_buff_empty = '0') then
-                tx_readreq <= '1';
-            else
-                tx_readreq <= '0';
-            end if;
-        end if;
-    end process;
-
-    process(rst, rxclkout)
-    begin
-        if(rst = '1') then
-            rx_writereq <= '0';
-        elsif(rising_edge(rxclkout)) then
-            if(rx_buff_full = '0') then
-                rx_writereq <= '1';
-            else
-                rx_writereq <= '0';
-            end if;
         end if;
     end process;
 

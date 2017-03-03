@@ -38,9 +38,11 @@ package sata_defines is
 
     constant PHY_STATUS_LENGTH  : integer := 4;
     constant LINK_STATUS_LENGTH : integer := 2;
-    constant PHY_STATUS_DEFAULT : std_logic_vector(31 downto 0)  := (31 downto PHY_STATUS_LENGTH => '0') & "1110";
+    constant PHY_STATUS_DEFAULT : std_logic_vector(31 downto 0)  := (31 downto PHY_STATUS_LENGTH => '0') & "0110";
+    constant PHY_STATUS_PAUSED  : std_logic_vector(31 downto 0)  := (31 downto PHY_STATUS_LENGTH => '0') & "1110";
     constant LINK_STATUS_DEFAULT : std_logic_vector(31 downto 0) := (31 downto LINK_STATUS_LENGTH=> '0') & "10";
     constant RX_DATA_FILL_DEFAULT : std_logic_vector(63 downto 0)  := ALIGNp & PHY_STATUS_DEFAULT;
+    constant RX_DATA_FILL_PAUSED  : std_logic_vector(63 downto 0)  := ALIGNp & PHY_STATUS_PAUSED;
     constant TX_DATA_FILL_DEFAULT : std_logic_vector(63 downto 0)  := ALIGNp & LINK_STATUS_DEFAULT;
 
 
