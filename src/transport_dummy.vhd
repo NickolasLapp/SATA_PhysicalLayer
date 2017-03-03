@@ -22,6 +22,7 @@ architecture rtl of transport_dummy is
 
     type data_arr is array(0 to 5) of std_logic_vector(31 downto 0);
     type stat_arr is array(0 to 5) of std_logic_vector(7 downto 0);
+    --type data_fis_array is array (511 downto 0) of std_logic_vector(31 downto 0);
 
  --   constant dataToSend : data_arr := (x"00358027", x"40000000", x"00000000", x"00000001", x"00000000", (others => 'X'));
  --   constant dataToSend : data_arr := (x"00358027", x"e0bbcb40", x"0000000d", x"00000001", x"00000000", (others => 'X'));
@@ -29,9 +30,13 @@ architecture rtl of transport_dummy is
 
     constant statToSend : stat_arr := ("01100000", "01100000", "01100000", "01100000", "01100000", "11010000");
 
+    --constant data_fis : data_fis_array := (x"00000046", x"12345678", x"23456789", x"98765432", x"12341234", (others => '1'));
+
     signal idx : integer range 0 to 1000001;
     signal link_rdy : std_logic;
 
+    signal dma_ack_rcv : std_logic;
+    signal array_idx_offset : integer range 0 to 1000001;
 --constant c_l_pause_transmit     : integer := 7;                     -- Asserted when Transport Layer is not ready to transmit
 --constant c_l_fifo_ready         : integer := 6;                     -- Asserted when Transport Layer FIFO has room for more data
 --constant c_l_transmit_request   : integer := 5;                     -- Asserted when Transport Layer wants to begin a transmission
@@ -54,7 +59,7 @@ begin
     link_rdy <= link_status_to_trans(5);
 
     trans_status_to_link(7 downto 6) <= "01";
-    trans_status_to_link(4 downto 0) <= "00000";
+    trans_status_to_link(4 downto 0) <= "00001";
 
     process(fabric_clk, reset)
     begin
@@ -62,6 +67,8 @@ begin
             idx <= 0;
             trans_status_to_link(5) <= '0';
             tx_data_to_link <= (others => '0');
+            dma_ack_rcv <='0';
+            array_idx_offset <= 0;
         elsif(rising_edge(fabric_clk)) then
             if(link_rdy = '0' and idx = 0) then
                 tx_data_to_link <= dataToSend(0);
@@ -70,14 +77,31 @@ begin
             elsif(idx < 4 and link_rdy = '1') then
                 idx <= idx + 1;
                 tx_data_to_link <= dataToSend(idx + 1);
-            elsif(idx < 1000000) then
-                --if(idx < 3) then
-                --    trans_status_to_link(5) <= '1';
-                --else
-                --    trans_status_to_link(5) <= '0';
-                --end if;
+            elsif(idx = 4)then --need to reset transport to link tx request flag
                 trans_status_to_link(5) <= '0';
                 tx_data_to_link <= (others => '1');
+                idx <= idx + 1;
+            elsif(idx < 1000000) then
+                if(rx_data_from_link(7 downto 0) = x"39")then --dma act recievied
+                    dma_ack_rcv <='1';
+                    array_idx_offset <= idx;
+                elsif(dma_ack_rcv = '1')then
+                    --transmit test data
+                    if((idx - array_idx_offset) < 512 and link_rdy = '0')then
+                        tx_data_to_link <= x"00000046"; --start sending data fis
+                        trans_status_to_link(5) <= '1';
+                    elsif((idx - array_idx_offset) < 512 and link_rdy = '1') then
+                        tx_data_to_link <= std_logic_vector(to_unsigned(idx - array_idx_offset,32));
+                    else
+                        trans_status_to_link(5) <= '0';
+                        tx_data_to_link <= (others => '1');
+                        dma_ack_rcv <='0';
+                    end if;
+                else
+                    dma_ack_rcv <='0';
+                    trans_status_to_link(5) <= '0';
+                    tx_data_to_link <= (others => '1');
+                end if;
                 idx <= idx + 1;
             else
                 idx <= 0;
