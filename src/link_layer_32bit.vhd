@@ -184,6 +184,8 @@ s_tx_data_in 		<= tx_data_in;
 rx_data_out 		<= s_rx_data_out;
 tx_data_out 		<= s_tx_data_out;
 s_phy_status_in(3 downto 0) 	<= phy_status_in;
+
+phy_status_out <= s_phy_status_out;
 --s_phy_status_in(1 downto 0) 	<= phy_status_in(1 downto 0);
 --s_phy_status_in(2) <= '1';
 transmit_request 	<= s_trans_status_in(5);
@@ -206,7 +208,7 @@ CONTP_MEMORY: process (s_clk,s_rst_n)						-- memory to latch the previous valid
       if (s_rst_n = '0') then
         s_rx_data_in_temp	<= x"00000000";												-- initialize the temp value when reset is active
       elsif (rising_edge(s_clk)) then
-		if(rx_data_in /= CONTp and s_phy_status_in(c_l_primitive_in) = '1') then
+		if(rx_data_in /= CONTp and s_phy_status_in(c_l_primitive_in) = '1' and s_phy_status_in(c_l_pause_all) /='1') then
 			s_rx_data_in_temp <= rx_data_in;											-- update the temp value if there is a valid primitive from the Physical Layer that is not CONTp
 		end if;
       end if;
@@ -223,7 +225,7 @@ CONTP_SUPPORT: process (s_rst_n, phy_status_in, rx_data_in, s_rx_data_in_temp, s
 			s_rx_data_in <= s_rx_data_in_temp;											-- s_rx_data_in gets assigned to be the previous valid primitive
 			s_cont_flag <= '1';															-- indicate that CONTp is active
             s_primitive_in_temp <= '1';
-		elsif(phy_status_in(c_l_primitive_in) = '1') then								-- Physical Layer sends a new valid primitive
+		elsif(phy_status_in(c_l_primitive_in) = '1' and s_phy_status_in(c_l_pause_all) /='1') then								-- Physical Layer sends a new valid primitive
 			s_rx_data_in <= rx_data_in;													-- s_rx_data_in gets assigned the input from the Physical Layer
 			s_cont_flag <= '0';															-- CONTp is inactive
 			s_primitive_in_temp <= '1';

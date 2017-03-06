@@ -8,6 +8,7 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use work.sata_defines.all;
+use ieee.numeric_std.all;
 
 entity link_layer_32bit_TB is
 end entity;
@@ -18,22 +19,21 @@ architecture link_layer_32bit_TB_arch of link_layer_32bit_TB is
 
   component link_layer_32bit
    port(-- Input
-			clock				:	in std_logic;
-			rst_n				:	in std_logic;
+			clk				:	in std_logic;
+			rst_n			:	in std_logic;
 
 			--Interface with Transport Layer
-			trans_status_in 	:	in std_logic_vector(7 downto 0);		-- [FIFO_RDY/n, transmit request, data complete, escape, bad FIS, error, good FIS]
-			trans_status_out	:	out std_logic_vector(2 downto 0);		-- [crc good/bad, comm error, fail transmit]
-			tx_data_in			:	in std_logic_vector(31 downto 0);
-			rx_data_out			:	out std_logic_vector(31 downto 0);
+			trans_status_in :	in std_logic_vector(7 downto 0);		-- [FIFO_RDY/n, transmit request, data complete, escape, bad FIS, error, good FIS]
+			trans_status_out:	out std_logic_vector(6 downto 0);		-- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
+			tx_data_in		:	in std_logic_vector(31 downto 0);
+			rx_data_out		:	out std_logic_vector(31 downto 0);
 
 			--Interface with Physical Layer
-			tx_data_out			:	out std_logic_vector(31 downto 0);
-			rx_data_in			:	in std_logic_vector(31 downto 0);
-			phy_status_in		:	in std_logic_vector(1 downto 0);		-- [PHYRDY/n, Dec_Err]
-			phy_status_out		:	out std_logic_vector(0 downto 0);		-- [clear status signals]
-
-			perform_init		:	out std_logic);
+			tx_data_out		:	out std_logic_vector(31 downto 0);
+			rx_data_in		:	in std_logic_vector(31 downto 0);
+			phy_status_in	:	in std_logic_vector(3 downto 0);		-- [primitive, PHYRDY/n, Dec_Err]
+			phy_status_out	:	out std_logic_vector(1 downto 0);		-- [primitive, clear status signals]
+			perform_init	:	out std_logic);
   end component;
 
 
@@ -42,22 +42,25 @@ architecture link_layer_32bit_TB_arch of link_layer_32bit_TB is
   signal rst_n_TB 				: std_logic;
 
   signal trans_status_in_TB  	: std_logic_vector(7 downto 0);
-  signal trans_status_out_TB  	: std_logic_vector(2 downto 0);
+  signal trans_status_out_TB  	: std_logic_vector(6 downto 0);
   signal tx_data_in_TB			: std_logic_vector(31 downto 0);
   signal rx_data_out_TB			: std_logic_vector(31 downto 0);
 
   signal tx_data_out_TB			: std_logic_vector(31 downto 0);
   signal rx_data_in_TB			: std_logic_vector(31 downto 0);
-  signal phy_status_in_TB		: std_logic_vector(1 downto 0);		-- [PHYRDY/n, Dec_Err]
-  signal phy_status_out_TB		: std_logic_vector(0 downto 0);		-- [clear status signals]
-
+  signal phy_status_in_TB		: std_logic_vector(3 downto 0);		-- [PHYRDY/n, Dec_Err]
+  signal phy_status_out_TB		: std_logic_vector(1 downto 0);		-- [clear status signals]
   signal perform_init_TB 		: std_logic;
+
+	signal counter_temp : integer;
+signal counter : std_logic_vector(31 downto 0);
+signal start : std_logic;
 
 begin
 
   DUT1 : link_layer_32bit port map (
 			-- Input
-			clock				=> clk_TB,
+			clk					=> clk_TB,
 			rst_n				=> rst_n_TB,
 
 			--Interface with Transport Layer
@@ -87,14 +90,34 @@ begin
        end process;
 -----------------------------------------------
 
+
+
+counter_process : PROCESS(clk_TB, rst_n_TB)
+		BEGIN
+			IF(rst_n_TB = '0') THEN
+				counter_temp <= 0;
+			ELSIF(clk_TB 'EVENT AND clk_TB = '1') THEN
+				IF(start = '1') THEN
+					counter<= std_logic_vector(to_unsigned(counter_temp,32));
+					counter_temp <= counter_temp + 1;
+				END IF;
+			END IF;
+	END PROCESS;
+
 	  DIN_STIM : process
        begin
 			-- reset
 			trans_status_in_TB 			<= "00000000";
-			phy_status_in_TB(1) 		<= '0';
-			phy_status_in_TB(0) 		<= '0';
+			phy_status_in_TB 			<= "0000";
 			rx_data_in_TB 				<= x"00000000";
 			tx_data_in_TB 				<= x"00000000";
+			start <= '0';
+
+			wait for 3.5*t_clk_per; 					-- wait for reset
+
+			-- initialize
+			phy_status_in_TB(c_l_phyrdy) 		<= '1';			-- PHYRDY
+			wait for 3.0*t_clk_per; 					-- SendAlign, Idle
 
 			wait for 3.5*t_clk_per; 					-- reset occurring
 			-- initialize
@@ -109,13 +132,8 @@ begin
 			trans_status_in_TB(4) 		<= '1';			-- more data
 			wait for 2.0*t_clk_per;						-- state transition
 			-- send data
-			tx_data_in_TB				<= x"00000001";
-			wait for 1.0*t_clk_per;
-			tx_data_in_TB				<= x"00000002";
-			wait for 1.0*t_clk_per;
-			tx_data_in_TB				<= x"00000003";
-			wait for 1.0*t_clk_per;
-			tx_data_in_TB				<= x"00000004";
+			start <= '1';
+			tx_data_in_TB				<= counter;
 			wait for 1.0*t_clk_per;
 			trans_status_in_TB(4) 		<= '0';			-- data done
 			-- wait for CRC
@@ -123,33 +141,6 @@ begin
 			-- Physical received data
 			rx_data_in_TB				<= R_OKp;
 
-			wait for 5.0*t_clk_per;			-- time between write and read
-
-			-- start read
-			rx_data_in_TB(31 downto 0) <= X_RDYp;		-- physical layer ready to send data
-			trans_status_in_TB(6) <= '1';				-- FIFO has space
-			wait for 1.0*t_clk_per;
-			-- send SOF
-			rx_data_in_TB(31 downto 0) <= SOFp;
-			wait for 1.0*t_clk_per;
-			-- send the scrambled data
-			rx_data_in_TB(31 downto 0) <= x"C2D2768C";
-			wait for 1.0*t_clk_per;
-			rx_data_in_TB(31 downto 0) <= x"1F26B36A";
-			wait for 1.0*t_clk_per;
-			rx_data_in_TB(31 downto 0) <= x"A508436F";
-			wait for 1.0*t_clk_per;
-			rx_data_in_TB(31 downto 0) <= x"3452D350";
-			wait for 1.0*t_clk_per;
-			rx_data_in_TB(31 downto 0) <= x"6B149732";			-- crc
-			wait for 1.0*t_clk_per;
-			-- send EOF
-			rx_data_in_TB(31 downto 0) <= EOFp;
-			wait for 1.0*t_clk_per;
-			trans_status_in_TB(0) <= '1';				-- FIS good from Transport
-			wait for 3.0*t_clk_per;
-			-- return to Idle
-			rx_data_in_TB(31 downto 0) <= SYNCp;
 
             wait;
        end process;
