@@ -47,16 +47,30 @@ begin
         );
 
     -- Clock generation
-    fabric_clk <= not fabric_clk after CLK75_PERIOD/2 when rst = '0' else '0';
+    fabric_clk <= not fabric_clk after CLK75_PERIOD/2 when rst = '1' else '0';
 
     stimuli : process
     begin
         link_status_to_trans <= (others => '0');
-        rst <= '1';
-        wait for 1000 ns;
         rst <= '0';
-        wait for 81 ns;
+        wait for 100 ns;
+        rst <= '1';
+        wait until rising_edge(fabric_clk);
         link_status_to_trans(5) <= '1';
+        wait until rising_edge(fabric_clk);
+        wait until trans_status_to_link(5) = '0';
+        link_status_to_trans(5) <= '0';
+        wait for 200 ns;
+        wait until rising_edge(fabric_clk);
+        rx_data_from_link <= x"00000039";
+        wait until rising_edge(fabric_clk);
+        rx_data_from_link <= x"00000000";
+        wait until trans_status_to_link(5) = '1';
+        wait until rising_edge(fabric_clk);
+        wait until rising_edge(fabric_clk);
+        link_status_to_trans(5) <= '1';
+        wait until rising_edge(fabric_clk);
+        
         wait for 1000 ms;
 
     end process;

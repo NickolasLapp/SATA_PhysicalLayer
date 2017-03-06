@@ -158,7 +158,9 @@ begin
     phy_status_to_link  <= rx_data_to_link_comb(PHY_STATUS_LENGTH-1 downto 0);
 
     -- combine signals before storage in fifo
-    tx_data_from_link_comb <= tx_data_from_link & link_status_to_phy_s;
+    tx_data_from_link_comb(63 downto 32) <= tx_data_from_link;
+    tx_data_from_link_comb(LINK_STATUS_LENGTH-1 downto 0) <= link_status_to_phy;
+
     rx_data_from_phy_comb  <= rx_data_from_phy  & phy_status_to_link_s;
 
     -- acl for fifos
