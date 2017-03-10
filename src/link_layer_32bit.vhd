@@ -174,6 +174,8 @@ signal s_primitive_in_temp 	: std_logic; 					-- Flag high when primitive primit
 signal transmit_request		: std_logic;
 signal pause_just_finished  : std_logic;
 
+signal crc_started 			: std_logic;
+
 begin
 -- assign signals to inputs/outputs
 s_clk 				<= clk;
@@ -240,6 +242,21 @@ CONTP_SUPPORT: process (s_clk, s_rst_n, phy_status_in, rx_data_in, s_rx_data_in_
 		end if;
       end if;
   end process;
+
+process(s_clk, s_rst_n)
+	begin
+		if(s_rst_n = '0') then
+			crc_started <= '0';
+		elsif(rising_edge(s_clk)) then
+			if(current_state = L_RcvData) then
+				if(s_crc_data_valid= '1') then
+					crc_started <= '1';
+				end if;
+			elsif(current_state = L_WaitCRC) then
+				crc_started <= '0';
+			end if;
+		end if;
+	end process;
 
 -- call components
 lfsr_component : scrambler
@@ -1175,7 +1192,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										s_phy_status_out(c_l_primitive_out)				<= '1';				-- inform the Physical Layer that a valid primitive is being transmitted
 										s_phy_status_out(c_l_clear_status)				<= '0';				-- the Physical Layer does not need to clear its status vector to the Link Layer
 
-										if (s_phy_status_in(c_l_pause_all) = '1') then
+--										if (s_phy_status_in(c_l_pause_all) = '1') then
+										if (pause_just_finished = '1') then
 											s_trans_status_out(c_l_phy_paused)			<= '1';				-- inform the Transport Layer that the Physical Layer has requested a pause
 										else
 											s_trans_status_out(c_l_phy_paused)			<= '0';				-- inform the Transport Layer that the Physical Layer has not requested a pause
@@ -1196,13 +1214,15 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										-- s_lfsr_en										<= '1';				-- start the descrambler component
 										s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
 
-										if(s_crc_data_valid_prev = '0' and s_crc_data_valid = '1' and pause_just_finished = '0') then
+--										if(s_crc_data_valid_prev = '0' and s_crc_data_valid = '1' and pause_just_finished = '0') then
+										if(s_crc_data_valid = '1' and crc_started = '0') then
 											s_sof <= '1';
 										else
 											s_sof <= '0';
 										end if;
 
-										if (s_phy_status_in(c_l_pause_all) = '1') then
+--										if (s_phy_status_in(c_l_pause_all) = '1') then
+										if (pause_just_finished = '1') then
 											s_crc_data_valid							<= '0';
 										elsif (s_scram_rdy = '1') then							-- when the output of the descrambler changes, the output is ready for the CRC
 											s_crc_data_valid  							<= '1';				-- inform the crc component that the input is valid
@@ -1210,7 +1230,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 											s_crc_data_valid  							<= '0';				-- inform the crc component that the input is not valid
 										end if;
 
-										if (s_phy_status_in(c_l_pause_all) = '1') then
+--										if (s_phy_status_in(c_l_pause_all) = '1') then
+										if (pause_just_finished = '1') then
 											s_eof										<= '0';
 										elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=EOFp) then	-- if EOFp is received, the FIS data is over
 											s_eof 										<= '1';											-- signal the crc component to stop
@@ -1219,13 +1240,15 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 											s_eof										<= '0';											-- continue the crc calculation
 										end if;
 
-										if (s_scram_rdy = '1' and s_phy_status_in(c_l_pause_all) /= '1') then	-- if the descrambler output is valid
+--										if (s_scram_rdy = '1' and s_phy_status_in(c_l_pause_all) /= '1') then	-- if the descrambler output is valid
+										if (s_scram_rdy = '1'  and pause_just_finished /= '1') then
 											s_rx_data_out								<= s_lfsr_data_out;		-- send the descrambler output to the Transport Layer
 										else
 											s_rx_data_out(31 downto 0)					<= c_no_data;			-- no data to transmit to the Transport Layer
 										end if;
 
-										if (s_phy_status_in(c_l_pause_all) = '1') then
+--										if (s_phy_status_in(c_l_pause_all) = '1') then
+										if (pause_just_finished = '1') then
 											s_lfsr_en									<= '0';
 										elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0) = HOLDp) then	-- more data to transmit and Physical sends HOLDAp
 											s_lfsr_en									<= '0';										-- pause the descrambler (set enable to zero)
@@ -1305,7 +1328,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										s_lfsr_en										<= '1';
 									end if;
 
-									--if(s_scram_rdy = '1') then 
+									--if(s_scram_rdy = '1') then
 									--	s_crc_data_in									<= s_lfsr_data_out;		-- no data to input to the crc component
 									--	s_crc_data_valid 								<= '1';				-- inform the crc component that the input data is not valid (not part of a FIS payload)
 									--else
