@@ -7,7 +7,7 @@ use work.sata_defines.all;
 
 entity phy_layer_32bit is
     port(
-        fabric_clk_75 : in std_logic;           -- 50 MHz clock from AC18, driven by SL18860C
+        fabric_clk_37_5 : in std_logic;           -- 50 MHz clock from AC18, driven by SL18860C
         reset         : in std_logic;       -- CPU_RESETn pushbutton. (Debounce this). Pin AD27
 
         --Interface with link layer
@@ -21,9 +21,13 @@ entity phy_layer_32bit is
         rxclkout         : in std_logic;   -- recovered rx clock to clock receive datapath from XCVRs
         txclkout         : in  std_logic; -- tx clock from XCVRs to clock transmit datapath
 
+        rx_pma_clkout    : in std_logic;
+
         rx_data          : in  std_logic_vector(31 downto 0); --raw received data from XCVRs
         rx_datak         : in  std_logic_vector(3 downto 0); --data or control symbol for receieved data
         rx_signaldetect  : in  std_logic; -- detect oob received oob signals
+
+        rx_errdetect     : in  std_logic_vector(3 downto 0);
 
         tx_forceelecidle : out std_logic; -- send oob signals
         tx_data          : out std_logic_vector(31 downto 0); -- data to transmit
@@ -55,6 +59,8 @@ architecture phy_layer_32bit_arch of phy_layer_32bit is
     signal rx_data_from_phy         : std_logic_vector(31 downto 0);
     signal primitive_recvd          : std_logic;
 
+    signal ppm_within_threshold     : std_logic;
+
     component PhyLayerInit is
         port(
             rxclkout         : in  std_logic;
@@ -68,6 +74,8 @@ architecture phy_layer_32bit_arch of phy_layer_32bit is
             rx_datak         : in  std_logic_vector(3 downto 0);
             rx_signaldetect  : in  std_logic;
 
+            rx_errdetect     : in std_logic_vector(3 downto 0);
+
             tx_forceelecidle : out std_logic;
             tx_data          : out std_logic_vector(31 downto 0);
             tx_datak         : out std_logic_vector(3 downto 0);
@@ -78,6 +86,7 @@ architecture phy_layer_32bit_arch of phy_layer_32bit is
             rx_set_locktoref  : out std_logic;
             rx_set_locktodata : out std_logic;
 
+            ppm_within_threshold : in std_logic;
             PHYRDY         : out std_logic
         );
     end component PhyLayerInit;
@@ -100,6 +109,16 @@ architecture phy_layer_32bit_arch of phy_layer_32bit is
         );
     end component;
 
+    component ppm_detector is
+        port(
+            fabric_clk: in std_logic;
+            rxclkout  : in std_logic;
+            rst       : in std_logic;
+
+            ppm_within_threshold : out std_logic
+            );
+    end component ppm_detector;
+
 begin
 
     phyLayerInit1 : PhyLayerInit
@@ -115,6 +134,8 @@ begin
             rx_datak         => rx_datak,
             rx_signaldetect  => rx_signaldetect,
 
+            rx_errdetect     => rx_errdetect,
+
             tx_forceelecidle => tx_forceelecidle,
             tx_data          => tx_data_phy_init,
             tx_datak         => tx_datak_phy_init,
@@ -125,12 +146,14 @@ begin
             rx_set_locktoref  => rx_set_locktoref,
             rx_set_locktodata => rx_set_locktodata,
 
+            ppm_within_threshold => ppm_within_threshold,
+
             PHYRDY           => PHYRDY
         );
 
     i_rate_match_blk_1 : rate_match_blk
         port map(
-            fabric_clk => fabric_clk_75,
+            fabric_clk => fabric_clk_37_5,
             rst        => rate_match_clear,
 
             -- from XCVR block
@@ -142,6 +165,15 @@ begin
             -- to link layer
             rx_data_to_link     => rx_data_to_link_comb,
             tx_data_from_link   => tx_data_from_link_comb
+        );
+
+    i_ppm_detector_1 : ppm_detector
+    port map(
+        fabric_clk => fabric_clk_37_5,
+        rxclkout   => rx_pma_clkout,
+        rst        => reset,
+
+        ppm_within_threshold => ppm_within_threshold
         );
 
     -- assign signals into vector for fifo bufferring

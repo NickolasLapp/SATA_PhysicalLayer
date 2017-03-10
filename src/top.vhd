@@ -27,6 +27,7 @@ architecture top_arch of top is
     signal cpu_rst_debounced: std_logic;
     signal pb_fpga1         : std_logic;
 
+    signal fabric_clk_37_5  : std_logic; -- use this to clock the receive datapath
     -- xcvr signals
     --PHY Control Signals
     signal rxclkout                : std_logic; -- use this to clock the receive datapath
@@ -40,6 +41,9 @@ architecture top_arch of top is
     signal rx_signaldetect          : std_logic; -- detect signal idle for OOB signaling
     signal rx_is_lockedtoref        : std_logic; -- receiver is locked to pll reference clock
     signal rx_is_lockedtodata       : std_logic; -- receiver is locked to CDR block from received data
+
+
+    signal rx_pma_clkout            : std_logic; -- recovered clock from cdr circuitry.
 
     signal do_word_align            : std_logic; -- perform word alignment to the comma 28.5 character
     signal rx_patterndetect         : std_logic_vector(3 downto 0); -- are we detecting the comma character in received data?
@@ -119,7 +123,7 @@ architecture top_arch of top is
 
     component phy_layer_32bit is
         port(
-            fabric_clk_75 : in std_logic;           -- 50 MHz clock from AC18, driven by SL18860C
+            fabric_clk_37_5 : in std_logic;           -- 50 MHz clock from AC18, driven by SL18860C
             reset         : in std_logic;       -- CPU_RESETn pushbutton. (Debounce this). Pin AD27
 
             --Interface with link layer
@@ -133,10 +137,13 @@ architecture top_arch of top is
             --Interface with transceivers
             rxclkout         : in std_logic;   -- recovered rx clock to clock receive datapath from XCVRs
             txclkout         : in  std_logic;  -- tx clock from XCVRs to clock transmit datapath
+            rx_pma_clkout    : in std_logic;                      --           rx_pma_clkout.rx_pma_clkout
 
             rx_data : in  std_logic_vector(31 downto 0); --raw received data from XCVRs
             rx_datak         : in  std_logic_vector(3 downto 0); --data or control symbol for receieved data
             rx_signaldetect  : in  std_logic; -- detect oob received oob signals
+
+            rx_errdetect     : in std_logic_vector(3 downto 0);
 
             tx_forceelecidle : out std_logic; -- send oob signals
             tx_data : out std_logic_vector(31 downto 0); -- parallel data to transmit
@@ -161,6 +168,7 @@ architecture top_arch of top is
             rx_analogreset          : in  std_logic; --          rx_analogreset.rx_analogreset
             rx_digitalreset         : in  std_logic; --         rx_digitalreset.rx_digitalreset
             rx_cdr_refclk           : in  std_logic; --           rx_cdr_refclk.rx_cdr_refclk
+            rx_pma_clkout           : out std_logic;                      --           rx_pma_clkout.rx_pma_clkout
             rx_serial_data          : in  std_logic; --          rx_serial_data.rx_serial_data
             rx_set_locktodata       : in  std_logic; --       rx_set_locktodata.rx_set_locktodata
             rx_set_locktoref        : in  std_logic; --        rx_set_locktoref.rx_set_locktoref
@@ -249,6 +257,16 @@ architecture top_arch of top is
         debounced  : out std_logic);
     end component Debounce;
 
+
+    component pll_50MHz_to_37_5MHz is
+        port (
+            refclk   : in  std_logic := '0'; --  refclk.clk
+            rst      : in  std_logic := '0'; --   reset.reset
+            outclk_0 : out std_logic;        -- outclk0.clk
+            locked   : out std_logic         --  locked.export
+        );
+    end component pll_50MHz_to_37_5MHz;
+
     begin
 
     i_transdummy1 : transport_dummy
@@ -282,7 +300,7 @@ architecture top_arch of top is
 
     i_phy_layer_1 : phy_layer_32bit
     port map(
-            fabric_clk_75 => txclkout,
+            fabric_clk_37_5 => txclkout,
             reset         => reset,
 
             --Interface with link layer
@@ -295,10 +313,13 @@ architecture top_arch of top is
             --Interface with transceivers
             rxclkout         => rxclkout,
             txclkout         => txclkout,
+            rx_pma_clkout    => rx_pma_clkout,
 
             rx_data          => rx_data,
             rx_datak         => rx_datak,
             rx_signaldetect  => rx_signaldetect,
+
+            rx_errdetect     => rx_errdetect,
 
             tx_forceelecidle => tx_forceelecidle,
             tx_data          => tx_data,
@@ -322,6 +343,7 @@ architecture top_arch of top is
             rx_analogreset          => rx_analogreset,
             rx_digitalreset         => rx_digitalreset,
             rx_cdr_refclk           => pll_refclk_150, -- cdr refclk is same as pll refclk!!!
+            rx_pma_clkout           => rx_pma_clkout,
             rx_serial_data          => rx_serial_data,
             rx_set_locktodata       => rx_set_locktodata,
             rx_set_locktoref        => rx_set_locktoref,
@@ -398,6 +420,14 @@ architecture top_arch of top is
             rx_ready           => rx_ready,
             rx_is_lockedtodata => rx_is_lockedtodata,
             rx_cal_busy        => rx_cal_busy
+        );
+
+    i_pll_50MHz_to_37_5MHz_1 : pll_50MHz_to_37_5MHz
+        port map(
+            refclk   => clk50,
+            rst      => reset,
+            outclk_0 => fabric_clk_37_5
+--            locked   : out std_logic         --  locked.export
         );
 
     -- debounce reset and pushbutton.

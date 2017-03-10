@@ -27,7 +27,6 @@ architecture byte_orderer_arch of byte_orderer is
     signal rx_datak_prev : std_logic_vector(3 downto 0);
     signal ordered_datak : std_logic_vector(3 downto 0);
 begin
-
     process(rxclkout, reset)
     begin
         if(reset = '1') then
@@ -56,6 +55,8 @@ begin
                 else
                     is_byte_ordered <= '0';
                 end if;
+            else
+                is_byte_ordered <= '0';
             end if;
 
 
