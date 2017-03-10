@@ -24,7 +24,7 @@ architecture rtl of transport_dummy is
     type stat_arr is array(0 to 5) of std_logic_vector(7 downto 0);
     --type data_fis_array is array (511 downto 0) of std_logic_vector(31 downto 0);
 
-    constant identifyPacket : data_arr := (x"00EC8027", x"e0000000", x"00000000", x"00000000", x"00000000", (others => 'X'));
+    constant identifyPacket : data_arr := (x"00EC8027", x"E0000000", x"00000000", x"00000000", x"00000000", (others => 'X'));
 
  --   constant dataToSend : data_arr := (x"00358027", x"40000000", x"00000000", x"00000001", x"00000000", (others => 'X'));
  --   constant dataToSend : data_arr := (x"00358027", x"e0bbcb40", x"0000000d", x"00000001", x"00000000", (others => 'X'));
@@ -32,9 +32,9 @@ architecture rtl of transport_dummy is
     --constant dataToSend : data_arr := (x"00CA8027", x"e05BFFFF", x"00000000", x"00000001", x"00000000", (others => '0'));
     --constant dataToSend : data_arr := (x"00358027", x"e0FFFFFF", x"000000FF", x"00000001", x"00000000", (others => '0'));
     --constant dmaWritePacket : data_arr := (x"00358027", x"e0100000", x"00000000", x"00000001", x"00000000", (others => 'X'));
-    constant dmaWritePacket : data_arr := (x"00CA8027", x"e000FC02", x"00000000", x"00000001", x"00000000", (others => 'X'));
+    constant dmaWritePacket : data_arr := (x"00358027", x"E0000000", x"00000000", x"00000001", x"00000000", (others => 'X'));
 --    constant dmaReadPacket : data_arr := (x"00258027", x"e0000010", x"00000000", x"00000001", x"00000000", (others => 'X'));
-    constant dmaReadPacket : data_arr := (x"00258027", x"e0000000", x"00000000", x"00000001", x"00000000", (others => 'X')); -- nick changed the read packet to exactly match the computer's read packet.
+    constant dmaReadPacket : data_arr := (x"00258027", x"E0000000", x"00000000", x"00000001", x"00000000", (others => 'X')); -- nick changed the read packet to exactly match the computer's read packet.
     constant statToSend : stat_arr := ("01100000", "01100000", "01100000", "01100000", "01100000", "11010000");
 
     signal identifySent : std_logic_vector(1 downto 0);
@@ -89,17 +89,13 @@ begin
             end if;
             if(pause = '0' and first_status_received = '1')then
                 if(link_rdy = '0' and idx = 0) then
-                    if(identifySent = "11") then
+                    if(identifySent = "10") then
                         tx_data_to_link <= dmaWritePacket(0);
-                        if(rx_data_from_link(7 downto 0) = x"34") then --reg dev to host from dma read received
-                            trans_status_to_link(5) <= '1';
-                        end if;
+                        trans_status_to_link(5) <= '1';
                         idx <= 0;
-                    elsif(identifySent = "10")then
+                    elsif(identifySent = "11")then
                         tx_data_to_link <= dmaReadPacket(0);
-                        if(rx_data_from_link(7 downto 0) = x"46") then --data fis from identify device received
-                            trans_status_to_link(5) <= '1';
-                        end if;
+                        trans_status_to_link(5) <= '1';
                         idx <= 0;
                     else -- identifySent = '0'
                         tx_data_to_link <= identifyPacket(0);
@@ -108,9 +104,9 @@ begin
                     end if;
                 elsif(idx < 4 and link_rdy = '1') then
                     idx <= idx + 1;
-                    if(identifySent = "11") then
+                    if(identifySent = "10") then
                         tx_data_to_link <= dmaWritePacket(idx + 1);
-                    elsif(identifySent = "10")then
+                    elsif(identifySent = "11")then
                         --send first read
                         tx_data_to_link <= dmaReadPacket(idx + 1);
                     else --identifySent = '0'
@@ -120,29 +116,33 @@ begin
                     trans_status_to_link(5) <= '0';
                     tx_data_to_link <= (others => '1');
                     idx <= idx + 1;
+                elsif(idx = 5)then
                     if(identifySent = "00") then
-                        identifySent <= "01";
-                        idx <= 0;
-                    elsif(identifySent = "01") then
-                        --identifySent <= "11"; --this line is here to send a dma write as second command after identify device
-                        identifySent <= "10"; --uncomment this to include a read
-                        idx <= 0;
+                        if(rx_data_from_link(7 downto 0) = x"46") then --data fis from identify device received
+                            identifySent <= "10";
+                            idx <= 0;
+                        end if;
                     elsif(identifySent = "10") then
-                        identifySent <= "11";
-                        idx <= 0;
+                        --identifySent <= "11"; --this line is here to send a dma write as second command after identify device
+                        identifySent <= "11"; --uncomment this to include a read
+                        idx <= idx + 1;
+                    elsif(identifySent = "11") then
+                        if(rx_data_from_link(7 downto 0) = x"34") then
+                            identifySent <= "10";
+                            idx <= 0;
+                        end if;
                     end if;
                 elsif(idx < 1000000) then
+                    idx <= idx + 1;
                     if(rx_data_from_link(7 downto 0) = x"39")then --dma act recievied
                         dma_ack_rcv <='1';
                     elsif(dma_ack_rcv = '1')then
                         array_idx_offset <= 0;
                         --transmit test data
                         if(array_idx_offset < 128/8 and link_rdy = '0')then
---                        if(array_idx_offset < 128/8 and link_rdy = '0')then
                             tx_data_to_link <= x"00000046"; --start sending data fis
                             trans_status_to_link(5) <= '1';
                         elsif(array_idx_offset < 128/8 and link_rdy = '1') then
---                        elsif(array_idx_offset < 128/8 and link_rdy = '1') then
                             array_idx_offset <= array_idx_offset + 1;
                             tx_data_to_link <= std_logic_vector(to_unsigned(array_idx_offset,32));
                         else
@@ -150,14 +150,11 @@ begin
                             tx_data_to_link <= (others => '1');
                             dma_ack_rcv <='0';
                         end if;
-                    else
-                        dma_ack_rcv <='0';
-                        trans_status_to_link(5) <= '0';
-                        tx_data_to_link <= (others => '1');
+                    elsif(rx_data_from_link(7 downto 0) = x"34")then
+                        idx <= 0;
                     end if;
-                    idx <= idx + 1;
                 else
-                    idx <= 1000000;
+                    idx <= 0;
                 end if;
             end if;
         end if;
