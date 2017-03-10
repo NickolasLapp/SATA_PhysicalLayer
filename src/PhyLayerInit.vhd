@@ -18,6 +18,8 @@ entity PhyLayerInit is
         rx_datak         : in  std_logic_vector(3 downto 0);
         rx_signaldetect  : in  std_logic;
 
+        rx_errdetect     : in std_logic_vector(3 downto 0);
+
         tx_forceelecidle : out std_logic;
         tx_data          : out std_logic_vector(31 downto 0);
         tx_datak         : out std_logic_vector(3 downto 0);
@@ -27,6 +29,8 @@ entity PhyLayerInit is
 
         rx_set_locktodata: out std_logic;
         rx_set_locktoref : out std_logic;
+
+        ppm_within_threshold:in std_logic;
 
         PHYRDY           : out std_logic
     );
@@ -59,6 +63,12 @@ architecture PhyLayerInit_arch of PhyLayerInit is
     signal primitive_recvd_s : std_logic;
     signal do_byte_order   : std_logic;
     signal is_byte_ordered : std_logic;
+
+    signal signalStableTime : std_logic_vector(31 downto 0) := (others => '0');
+    signal stableData     : std_logic_vector(31 downto 0) := (others => '0');
+    signal stableErrDetect  : std_logic_vector(3 downto 0) := (others => '0');
+
+    signal lock_done : std_logic := '0';
 
     component byte_orderer is
         port(
@@ -122,7 +132,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
 
             is_byte_ordered  => is_byte_ordered,
             rx_ordered_data  => rx_ordered_data_s,
-            primitive_recvd  => primitive_recvd_s 
+            primitive_recvd  => primitive_recvd_s
         );
 
     process(rxclkout, reset)
@@ -200,6 +210,11 @@ architecture PhyLayerInit_arch of PhyLayerInit is
             rx_set_locktoref  <= '0';
             do_word_align <= '0';
             do_byte_order <= '0';
+            ResumePending <= '0';
+            signalStableTime <= (others => '0');
+            stableData       <= (others => '0');
+            stableErrDetect  <= (others => '0');
+            lock_done <= '0';
         elsif(rising_edge(txclkout)) then
             case phyInitState is
                 when    HP1_HR_Reset                =>
@@ -213,6 +228,11 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                     oobSignalToSend <= COMRESET;
                     do_word_align <= '0';
                     do_byte_order <= '0';
+                    ResumePending <= '0';
+                    signalStableTime <= (others => '0');
+                    stableData     <= (others => '0');
+                    stableErrDetect  <= (others => '0');
+                    lock_done <= '0';
                 when    HP2_HR_AwaitCOMINIT         =>
                 -- Quiescent
                     forceQuiescent <= '1';
@@ -263,14 +283,34 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                     tx_data <= x"4A4A4A4A";
                     tx_datak <= DATAK_BYTE_NONE;
                     oobSignalToSend <= NONE;
-                    rx_set_locktodata <= '1';
-                    rx_set_locktoref  <= '0';
-                    do_word_align <= '1';
-                    if(rx_syncstatus = ALL_WORDS_SYNC) then
-                        do_byte_order <= '1';
+
+                    if(stableData = rx_data) then-- and stableErrDetect = rx_errdetect) then
+                        signalStableTime <= signalStableTime + '1';
+
+                        if(signalStableTime > 15 and rx_syncstatus = ALL_WORDS_SYNC) then
+                            do_byte_order <= '1';
+
+                            if(is_byte_ordered = '1' and rx_ordered_data_s = ALIGNp and lock_done = '0') then
+                                lock_done <= '1';
+                                rx_set_locktoref <= '0';
+                                rx_set_locktodata <= '1';
+                                do_byte_order <= '0';
+                                signalStableTime <= (others => '0');
+                                stableData <= (others => '0');
+                                stableErrDetect <= (others => '1');
+                            end if;
+                        else
+                            do_word_align <= retryTimeElapsed(6);
+                            do_byte_order <= '0';
+                        end if;
                     else
+                        signalStableTime <= (others => '0');
+                        stableData       <= rx_data;
+                        stableErrDetect  <= rx_errdetect;
+                        do_word_align <= retryTimeElapsed(6);
                         do_byte_order <= '0';
                     end if;
+
                 when    HP7_HR_SendAlign            =>
                 -- Transmit ALIGNp
                     forceQuiescent <= '0';
@@ -378,7 +418,7 @@ architecture PhyLayerInit_arch of PhyLayerInit is
                 end if;
 
             when    HP6_HR_AwaitAlign           =>
-                if(rx_syncstatus = ALL_WORDS_SYNC and is_byte_ordered = '1') then
+                if(rx_syncstatus = ALL_WORDS_SYNC and is_byte_ordered = '1' and rx_ordered_data_s = ALIGNp and lock_done = '1' and signalStableTime > 32) then
                     phyInitNextState <= HP7_HR_SendAlign;
                 elsif(retryTimeElapsed > ALIGN_INTERVAL and phyInitState = phyInitPrevState) then
                     phyInitNextState <= HP1_HR_RESET;
