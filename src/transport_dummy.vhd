@@ -12,7 +12,7 @@ entity transport_dummy is
 
             --Interface with link Layer
             trans_status_to_link:   out std_logic_vector(7 downto 0);  -- [FIFO_RDY/n, transmit request, data complete, escape, bad FIS, error, good FIS]
-            link_status_to_trans:   in  std_logic_vector(6 downto 0);  -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
+            link_status_to_trans:   in  std_logic_vector(7 downto 0);  -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
             tx_data_to_link     :   out std_logic_vector(31 downto 0);
             rx_data_from_link   :   in  std_logic_vector(31 downto 0)
             );
@@ -139,10 +139,10 @@ begin
                     elsif(dma_ack_rcv = '1')then
                         array_idx_offset <= 0;
                         --transmit test data
-                        if(array_idx_offset < 128/8 and link_rdy = '0')then
+                        if(array_idx_offset < 128 and link_rdy = '0')then
                             tx_data_to_link <= x"00000046"; --start sending data fis
                             trans_status_to_link(5) <= '1';
-                        elsif(array_idx_offset < 128/8 and link_rdy = '1') then
+                        elsif(array_idx_offset < 128 and link_rdy = '1') then
                             array_idx_offset <= array_idx_offset + 1;
                             tx_data_to_link <= std_logic_vector(to_unsigned(array_idx_offset,32));
                         else

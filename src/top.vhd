@@ -83,7 +83,7 @@ architecture top_arch of top is
     signal rx_data_to_link          : std_logic_vector(31 downto 0);
 
     signal trans_status_in          : std_logic_vector(7 downto 0);
-    signal trans_status_out         : std_logic_vector(6 downto 0);
+    signal trans_status_out         : std_logic_vector(7 downto 0);
     signal trans_tx_data_in         : std_logic_vector(31 downto 0);
     signal trans_rx_data_out        : std_logic_vector(31 downto 0);
     signal rst_n                    : std_logic;
@@ -95,7 +95,7 @@ architecture top_arch of top is
 
                 --Interface with link Layer
                 trans_status_to_link:   out std_logic_vector(7 downto 0);  -- [FIFO_RDY/n, transmit request, data complete, escape, bad FIS, error, good FIS]
-                link_status_to_trans:   in  std_logic_vector(6 downto 0);  -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
+                link_status_to_trans:   in  std_logic_vector(7 downto 0);  -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
                 tx_data_to_link     :   out std_logic_vector(31 downto 0);
                 rx_data_from_link   :   in  std_logic_vector(31 downto 0)
                 );
@@ -109,7 +109,7 @@ architecture top_arch of top is
 
             --Interface with Transport Layer
             trans_status_in :   in std_logic_vector(7 downto 0);        -- [FIFO_RDY/n, transmit request, data complete, escape, bad FIS, error, good FIS]
-            trans_status_out:   out std_logic_vector(6 downto 0);       -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
+            trans_status_out:   out std_logic_vector(7 downto 0);       -- [Link Idle, transmit bad status, transmit good status, crc good/bad, comm error, fail transmit]
             tx_data_in      :   in std_logic_vector(31 downto 0);
             rx_data_out     :   out std_logic_vector(31 downto 0);
 
