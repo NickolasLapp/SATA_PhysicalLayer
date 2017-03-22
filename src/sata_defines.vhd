@@ -59,6 +59,7 @@ package sata_defines is
     constant c_l_error              : integer := 1;                     -- Asserted at the end of a "read" when there is a different error in the FIS received by the Transport Layer
     constant c_l_good_fis           : integer := 0;                     -- Asserted at the end of a "read" when a good FIS is received by the Transport Layer
         -- trans_status_out
+    constant c_l_rcv_data_valid     : integer := 7;                     -- Asserted when the receive data being sent to the Transport Layer is valid
     constant c_l_link_idle          : integer := 5;                     -- Asserted when the Link Layer is in the Idle state and is ready for a transmit request
     constant c_l_transmit_bad       : integer := 4;                     -- Asserted at the end of transmission to indicate in error
     constant c_l_transmit_good      : integer := 3;                     -- Asserted at the end of transmission to successful transmission
