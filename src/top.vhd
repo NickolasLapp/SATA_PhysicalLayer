@@ -4,6 +4,7 @@ use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
 use work.sata_defines.all;
+use work.transport_layer_pkg.all;
 
 entity top is
     port(
@@ -88,6 +89,25 @@ architecture top_arch of top is
     signal trans_rx_data_out        : std_logic_vector(31 downto 0);
     signal rst_n                    : std_logic;
 
+    --signal declarations for dummy application process
+    signal user_cmd_to_trans : std_logic_vector(2 downto 0);
+    signal user_data_to_trans : std_logic_vector(DATA_WIDTH - 1 downto 0);
+    signal user_address_to_trans : std_logic_vector(DATA_WIDTH - 1 downto 0);
+
+    signal trans_status_to_user : std_logic_vector(3 downto 0);
+    signal trans_data_to_user : std_logic_vector(DATA_WIDTH - 1 downto 0);
+    signal trans_address_to_user : std_logic_vector(DATA_WIDTH - 1 downto 0);
+
+    signal app_control_counter : integer range 0 to 1000001;
+    signal app_data_counter : integer range 0 to BUFFER_DEPTH;
+
+    signal msata_device_ready : std_logic;
+    signal app_write_valid : std_logic;
+    signal app_send_read_valid : std_logic;
+    signal app_receive_read_valid : std_logic;
+    signal test_write_address : std_logic_vector(DATA_WIDTH - 1 downto 0);
+    signal app_read_sent : std_logic;
+
     component transport_dummy is
         port(
                 fabric_clk          :   in std_logic;
@@ -101,6 +121,28 @@ architecture top_arch of top is
                 );
     end component transport_dummy;
 
+    component transport_layer is
+        port(
+            --Interface with Application Layer
+            rst_n           :   in std_logic;
+            clk         :   in std_logic;
+
+            data_from_user      :   in std_logic_vector(DATA_WIDTH - 1 downto 0);
+            address_from_user   :   in std_logic_vector(DATA_WIDTH - 1 downto 0);
+
+            user_command            :   in std_logic_vector(2 downto 0);
+            status_to_user          :   out std_logic_vector(3 downto 0);
+
+            data_to_user       :   out std_logic_vector(DATA_WIDTH - 1 downto 0);
+            address_to_user    :   out std_logic_vector(DATA_WIDTH - 1 downto 0);
+
+            --Interface with Link Layer
+            status_to_link :    out std_logic_vector(7 downto 0); --for test just use bit 0 to indicate data ready
+            status_from_link     :   in std_logic_vector(7 downto 0);
+            data_to_link     :   out std_logic_vector(DATA_WIDTH - 1 downto 0);
+            data_from_link      :   in std_logic_vector(DATA_WIDTH - 1 downto 0));
+
+    end component transport_layer;
 
     component link_layer_32bit is
     port(-- Input
@@ -269,15 +311,39 @@ architecture top_arch of top is
 
     begin
 
-    i_transdummy1 : transport_dummy
-    port map(
-            fabric_clk => txclkout,
-            reset      => rst_n,
-            trans_status_to_link => trans_status_in,
-            link_status_to_trans => trans_status_out,
-            tx_data_to_link      => trans_tx_data_in,
-            rx_data_from_link    => trans_rx_data_out
-        );
+    --i_transdummy1 : transport_dummy
+    --port map(
+    --        fabric_clk => txclkout,
+    --        reset      => rst_n,
+    --        trans_status_to_link => trans_status_in,
+    --        link_status_to_trans => trans_status_out,
+    --        tx_data_to_link      => trans_tx_data_in,
+    --        rx_data_from_link    => trans_rx_data_out
+    --    );
+    i_transport_layer1 : transport_layer
+        port map(
+
+            clk => txclkout,
+            rst_n      => rst_n,
+
+            --Interface with Application Layer
+            data_from_user => user_data_to_trans,
+            address_from_user => user_address_to_trans,
+
+            user_command => user_cmd_to_trans,
+            status_to_user => trans_status_to_user,
+
+            data_to_user => trans_data_to_user,
+            address_to_user => trans_address_to_user,
+
+            --Interface with Link Layer
+            status_to_link => trans_status_in,
+
+            status_from_link => trans_status_out,
+            data_to_link => trans_tx_data_in,
+            data_from_link => trans_rx_data_out
+            );
+
 
     i_linkLayer1 : link_layer_32bit
     port map(   -- Input
@@ -445,5 +511,80 @@ architecture top_arch of top is
     -- dummy status and data values
 --    link_status_to_phy <= LINK_STATUS_DEFAULT(LINK_STATUS_LENGTH-1 downto 0);
 --    tx_data_from_link  <= SYNCp;
+
+--dummy process to act as user application
+    user_application  :   process(txclkout, rst_n)
+    begin
+        if(rst_n = '0')then
+            user_cmd_to_trans <= "000";
+            user_data_to_trans <= (others => '0');
+            user_address_to_trans <= (others => '0');
+            app_data_counter <= 0;
+            app_control_counter <= 0;
+            app_read_sent <= '0';
+        elsif(rising_edge(txclkout))then
+            if(msata_device_ready = '1')then
+                if(app_control_counter < (2 * BUFFER_DEPTH))then --send write
+                    if(app_write_valid = '1')then
+                        if(app_data_counter < BUFFER_DEPTH)then
+                            user_cmd_to_trans <= "001";--send write
+                            user_address_to_trans <= test_write_address;
+                            user_data_to_trans <= std_logic_vector(to_unsigned(app_data_counter,DATA_WIDTH));
+                            app_data_counter <= app_data_counter + 1;
+                        else
+                            user_cmd_to_trans <= "000";
+                            user_data_to_trans <= (others => '1');
+                            user_address_to_trans <= (others => '1');
+                        end if;
+                        app_control_counter <= app_control_counter + 1;
+                    else
+                        app_control_counter <= app_control_counter;
+                    end if;
+                elsif(app_control_counter < 4 * BUFFER_DEPTH)then --send read
+                    app_data_counter <= 0;
+                    if(app_send_read_valid = '1' and app_read_sent = '0')then
+                        user_cmd_to_trans <= "010";--send read
+                        user_address_to_trans <= test_write_address;
+                        user_data_to_trans <= (others => '1');
+                        app_read_sent <= '1';
+                    elsif(app_read_sent = '1')then
+                        user_cmd_to_trans <= "000";
+                        app_control_counter <= app_control_counter + 1;
+                    else
+                        app_control_counter <= app_control_counter;
+                    end if;
+                elsif(app_control_counter < 6 * BUFFER_DEPTH)then --retrieve read
+                    if(app_receive_read_valid = '1')then
+                        user_cmd_to_trans <= "100";
+                        user_address_to_trans <= test_write_address;
+                        user_data_to_trans <= (others => '1');
+                        --something <= trans_data_to_user;
+                    else
+                        user_cmd_to_trans <= "000";
+                    end if;
+                    app_control_counter <= app_control_counter + 1;
+                elsif(app_control_counter > 8 * BUFFER_DEPTH)then --reset
+                    user_cmd_to_trans <= "000";
+                    user_data_to_trans <= (others => '0');
+                    user_address_to_trans <= (others => '0');
+                    app_control_counter <= 0;
+                    app_data_counter <= 0;
+                    app_read_sent <= '0';
+                else --wait and increment
+                    user_cmd_to_trans <= "000";
+                    user_data_to_trans <= (others => '0');
+                    user_address_to_trans <= (others => '0');
+                    app_control_counter <= app_control_counter + 1;
+                end if;
+            end if;
+        end if;
+    end process;
+
+    msata_device_ready <= trans_status_to_user(0);
+    app_write_valid <= trans_status_to_user(1);
+    app_send_read_valid <= trans_status_to_user(2);
+    app_receive_read_valid <= trans_status_to_user(3);
+
+    test_write_address <= (others  => '0'); --remove this to allow address functionaity
 
 end top_arch;

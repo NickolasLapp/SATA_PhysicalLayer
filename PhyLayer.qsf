@@ -79,35 +79,6 @@ set_instance_assignment -name XCVR_RX_COMMON_MODE_VOLTAGE VTT_0P65V -to rx_seria
 set_instance_assignment -name XCVR_RX_SD_THRESHOLD 5 -to rx_serial_data
 set_location_assignment PIN_AB13 -to USER_PB_FPGA1
 
-set_global_assignment -name VHDL_FILE src/ppm_detector.vhd
-set_global_assignment -name VHDL_FILE src/transport_dummy.vhd
-set_global_assignment -name VHDL_FILE src/rate_match_blk_tb.vhd
-set_global_assignment -name VHDL_FILE src/rate_match_blk.vhd
-set_global_assignment -name VHDL_FILE src/phy_layer_32bit.vhd
-set_global_assignment -name VHDL_FILE src/link_layer_lfsr.vhd
-set_global_assignment -name VHDL_FILE src/link_layer_32bit_writeRead_TB.vhd
-set_global_assignment -name VHDL_FILE src/link_layer_32bit.vhd
-set_global_assignment -name VHDL_FILE src/crc_gen_32.vhd
-set_global_assignment -name VHDL_FILE src/XCVR_CustomReset.vhd
-set_global_assignment -name VHDL_FILE src/byte_orderer.vhd
-set_global_assignment -name VHDL_FILE CustomIP/NativePhy.vhd -library NativePhy
-set_global_assignment -name QIP_FILE CustomIP/NativePhy.qip
-set_global_assignment -name VHDL_FILE src/PhyLayerInit.vhd
-set_global_assignment -name VHDL_FILE src/sata_defines.vhd
-set_global_assignment -name VHDL_FILE src/oob_signaldetect.vhd
-set_global_assignment -name SDC_FILE top.sdc
-set_global_assignment -name VHDL_FILE src/debounce.vhd
-set_global_assignment -name VHDL_FILE src/top.vhd
-set_global_assignment -name SIGNALTAP_FILE stp1.stp
-set_global_assignment -name CDF_FILE output_files/Chain1.cdf
-set_global_assignment -name QIP_FILE CustomIP/XCVR_ResetController.qip
-set_global_assignment -name SIP_FILE CustomIP/XCVR_ResetController.sip
-set_global_assignment -name QIP_FILE CustomIP/XCVR_Reconf.qip
-set_global_assignment -name SIP_FILE CustomIP/XCVR_Reconf.sip
-set_global_assignment -name QIP_FILE CustomIP/testRom.qip
-set_global_assignment -name QIP_FILE CustomIP/rate_match_fifo.qip
-set_global_assignment -name QIP_FILE CustomIP/pll_50MHz_to_37_5MHz.qip
-set_global_assignment -name SIP_FILE CustomIP/pll_50MHz_to_37_5MHz.sip
 set_global_assignment -name SLD_NODE_CREATOR_ID 110 -section_id Std_Capture
 set_global_assignment -name SLD_NODE_ENTITY_NAME sld_signaltap -section_id Std_Capture
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_clk -to "phy_layer_32bit:i_phy_layer_1|txclkout" -section_id Std_Capture
@@ -765,11 +736,6 @@ set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[11] -
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[12] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[13] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[19] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[20] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[22] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[24] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[25] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[30] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL=1" -section_id Link_Layer_Debug
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_SAMPLE_DEPTH=4096" -section_id Link_Layer_Debug
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_IN_ENABLED=0" -section_id Link_Layer_Debug
@@ -777,9 +743,6 @@ set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL_PIP
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ENABLE_ADVANCED_TRIGGER=1" -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[5] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[9] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[17] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[23] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[28] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[29] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[31] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[94] -to "link_layer_32bit:i_linkLayer1|phy_status_in[0]" -section_id Link_Layer_Debug
@@ -792,11 +755,9 @@ set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[96] -t
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[97] -to "link_layer_32bit:i_linkLayer1|phy_status_in[3]" -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[4] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[15] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[18] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[21] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[26] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[16] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ADVANCED_TRIGGER_ENTITY=sld_reserved_PhyLayer_Link_Layer_Debug_1_76d7," -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[98] -to "link_layer_32bit:i_linkLayer1|phy_status_out[0]" -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[99] -to "link_layer_32bit:i_linkLayer1|phy_status_out[1]" -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[100] -to "link_layer_32bit:i_linkLayer1|s_primitive_in_temp" -section_id Link_Layer_Debug
@@ -1153,6 +1114,47 @@ set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_BITS=170"
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_BITS=377" -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[3] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[14] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[27] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name VHDL_FILE src/transport_layer.vhd
+set_global_assignment -name VHDL_FILE src/transport_layer_pkg.vhd
+set_global_assignment -name VHDL_FILE src/ppm_detector.vhd
+set_global_assignment -name VHDL_FILE src/transport_dummy.vhd
+set_global_assignment -name VHDL_FILE src/rate_match_blk_tb.vhd
+set_global_assignment -name VHDL_FILE src/rate_match_blk.vhd
+set_global_assignment -name VHDL_FILE src/phy_layer_32bit.vhd
+set_global_assignment -name VHDL_FILE src/link_layer_lfsr.vhd
+set_global_assignment -name VHDL_FILE src/link_layer_32bit_writeRead_TB.vhd
+set_global_assignment -name VHDL_FILE src/link_layer_32bit.vhd
+set_global_assignment -name VHDL_FILE src/crc_gen_32.vhd
+set_global_assignment -name VHDL_FILE src/XCVR_CustomReset.vhd
+set_global_assignment -name VHDL_FILE src/byte_orderer.vhd
+set_global_assignment -name VHDL_FILE CustomIP/NativePhy.vhd -library NativePhy
+set_global_assignment -name QIP_FILE CustomIP/NativePhy.qip
+set_global_assignment -name VHDL_FILE src/PhyLayerInit.vhd
+set_global_assignment -name VHDL_FILE src/sata_defines.vhd
+set_global_assignment -name VHDL_FILE src/oob_signaldetect.vhd
+set_global_assignment -name SDC_FILE top.sdc
+set_global_assignment -name VHDL_FILE src/debounce.vhd
+set_global_assignment -name VHDL_FILE src/top.vhd
+set_global_assignment -name SIGNALTAP_FILE stp1.stp
+set_global_assignment -name CDF_FILE output_files/Chain1.cdf
+set_global_assignment -name QIP_FILE CustomIP/XCVR_ResetController.qip
+set_global_assignment -name SIP_FILE CustomIP/XCVR_ResetController.sip
+set_global_assignment -name QIP_FILE CustomIP/XCVR_Reconf.qip
+set_global_assignment -name SIP_FILE CustomIP/XCVR_Reconf.sip
+set_global_assignment -name QIP_FILE CustomIP/testRom.qip
+set_global_assignment -name QIP_FILE CustomIP/rate_match_fifo.qip
+set_global_assignment -name QIP_FILE CustomIP/pll_50MHz_to_37_5MHz.qip
+set_global_assignment -name SIP_FILE CustomIP/pll_50MHz_to_37_5MHz.sip
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[17] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[18] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[20] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[22] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[23] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[24] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[25] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[27] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[28] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[30] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ADVANCED_TRIGGER_ENTITY=sld_reserved_PhyLayer_Link_Layer_Debug_1_833a," -section_id Link_Layer_Debug
 set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
