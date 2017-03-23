@@ -77,8 +77,8 @@ architecture transport_layer_arch of transport_layer is
     signal tx_buffer : double_buffer;
     signal rx_buffer : double_buffer;
 
-    signal tx_write_ptr, tx_read_ptr : integer range 0 to DATA_WIDTH - 1;
-    signal rx_write_ptr, rx_read_ptr : integer range 0 to DATA_WIDTH - 1;
+    signal tx_write_ptr, tx_read_ptr : integer range 0 to BUFFER_DEPTH;
+    signal rx_write_ptr, rx_read_ptr : integer range 0 to BUFFER_DEPTH;
     signal tx_buffer_full, rx_buffer_full, tx_buffer_empty, rx_buffer_empty   : std_logic_vector(1 downto 0);
 
     signal tx0_locked, tx1_locked, rx0_locked, rx1_locked : std_logic; -- Custom signal to allow SM to take control of buffers
@@ -618,6 +618,12 @@ begin
                     rx1_locked <= '1';
                     rx_buffer_full(1) <= '0';
                 end if;
+                --add states to read entire fis
+                --HENDRICK LOOK HERE NOT SURE IF THIS WAS COMMENTED LAST COMPILE!!!
+                --if(data_from_link(7 downto 0)= DATA_FIS) then
+                --    rx_buffer(rx_index)(rx_write_ptr) <= data_from_link;
+                --    rx_write_ptr <= rx_write_ptr + 1;
+                --end if;
             when dma_read_data_frame    => --store data into rx buffer
                 if(pause = '0')then
                     rx_buffer(rx_index)(rx_write_ptr) <= data_from_link;
@@ -625,7 +631,7 @@ begin
                         rx_write_ptr <= rx_write_ptr + 1;
                     else
                         rx_buffer_full(rx_index) <= '1';
-                        rx_from_link_ready <= '0'; --not read to receive more data
+                        rx_from_link_ready <= '0'; --not ready to receive more data
                         if(rx_index = 0) then
                             rx0_locked <= '0';
                         else
