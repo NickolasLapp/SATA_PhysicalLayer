@@ -5,7 +5,7 @@ use ieee.numeric_std.all;       --! Use numeric standard
 package transport_layer_pkg is
 
 	constant DATA_WIDTH : integer := 32;
-	constant BUFFER_DEPTH : integer := 512; --Using 16 dword buffers for simulation, 512 for hardware test, final will be 2048
+	constant BUFFER_DEPTH : integer := 128; --Using 16 dword buffers for simulation, 128 for hardware test, final will be 2048
 	constant WRITE_SECTOR_COUNT : std_logic_vector(15 downto 0) := x"0001";
 
 	--States for Transport FSM
@@ -14,9 +14,10 @@ package transport_layer_pkg is
 	                    transport_reset, transport_idle,
 						--================================================
 	                    --Init States
-	                    transport_init, identify_device_0, identify_device_1,
-	                    identify_device_2, identify_device_3, identify_device_4,
-	                    rx_pio_setup, rx_identify_packet,
+	                    transport_init_start, transport_init_end, identify_device_0,
+	                    identify_device_1, identify_device_2, identify_device_3,
+	                    identify_device_4, rx_pio_setup, rx_identify_packet,
+	                    wait_for_fis_end,
 	                    --================================================
 	                    --DMA Write States  --PRELIMINARY
 	                     dma_write_idle, dma_write_reg_fis_0,

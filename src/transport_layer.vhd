@@ -126,7 +126,7 @@ begin
     end process;
 
     transport_next_state_logic: process (current_state, status_from_link, link_rdy, data_from_link,link_fis_type, user_command,rst_n,
-                                         pause, tx_index, rx_index, tx_buffer_full, rx_buffer_full, tx_read_ptr)
+                                         pause, tx_index, rx_index, tx_buffer_full, rx_buffer_full, tx_read_ptr,data_from_link_valid)
       begin
 
         case (current_state) is
@@ -137,14 +137,20 @@ begin
                 if(rst_n = '0') then
                     next_state <= transport_reset;
                 else
-                    next_state <= transport_init;
+                    next_state <= transport_init_start;
                 end if;
-            when transport_init =>
+            when transport_init_start =>
                 --if(data_from_link_valid = '1' and data_from_link(7 downto 0) = REG_DEVICE_TO_HOST)then--received initial status update
                 if(data_from_link(7 downto 0) = REG_DEVICE_TO_HOST)then--received initial status update
-                    next_state <= identify_device_0;
+                    next_state <= transport_init_end;
                 else
-                    next_state <= transport_init;
+                    next_state <= transport_init_start;
+                end if;
+            when transport_init_end =>    --wait until link has finished sending the register device to host FIS
+                if(data_from_link_valid = '1' or pause = '1')then
+                    next_state <= transport_init_end;
+                else
+                    next_state <= identify_device_0;
                 end if;
             when identify_device_0    =>
                 if(link_rdy = '1' and pause = '0')then
@@ -177,19 +183,23 @@ begin
                     next_state <= identify_device_4;
                 end if;
             when rx_pio_setup =>
-                if(link_fis_type = PIO_SETUP_FIS) then--and link fis  received?
+                if(link_fis_type = PIO_SETUP_FIS) then
                     next_state <= rx_identify_packet;
-                    --next_state <= dma_write_data_idle;
                 else
                     next_state <= rx_pio_setup;
                 end if;
             when rx_identify_packet =>
-                  if(link_fis_type = DATA_FIS)then--and link fis  received?
-                        next_state <= transport_idle;
-                  else
-                       next_state <= rx_identify_packet;
-                  end if;
-
+                if(link_fis_type = DATA_FIS)then
+                    next_state <= wait_for_fis_end;
+                else
+                    next_state <= rx_identify_packet;
+                end if;
+            when wait_for_fis_end =>
+                if(data_from_link_valid = '1' or pause = '1')then--link still transmitting uninteresting data
+                    next_state <= wait_for_fis_end;
+                else
+                    next_state <= transport_idle;
+                end if;
             when transport_idle =>
                 --if (status_from_link = x"00000001") then --FIS RECEIVED
                     --next_state <= decode_fis;
@@ -261,7 +271,7 @@ begin
             when dma_write_data_frame   =>
                 if(pause = '1')then
                     next_state <= pause_data_tx;
-                elsif(tx_read_ptr < BUFFER_DEPTH)then
+                elsif(tx_read_ptr < BUFFER_DEPTH and (link_rdy = '1' or pause = '1'))then
                     next_state <= dma_write_data_frame;
                 else
                     next_state <= dma_write_chk_status;
@@ -274,7 +284,7 @@ begin
                     --error occured, update this part!
                     --  next_state <= transport_idle;
                     --elsif(data_from_link(STATUS_BSY) = '0') then
-                        next_state <= transport_idle;   --Go back to transport idle until error functionality added
+                        next_state <= wait_for_fis_end;   --Go back to transport idle until error functionality added
                     --end if;
                 else
                     next_state <= dma_write_chk_status;
@@ -341,7 +351,7 @@ begin
                 end if;
             when dma_read_data_frame    =>
                 --if(rx_full(rx_index) = '0') then
-                if(rx_buffer_full(rx_index) = '0')then
+                if(rx_buffer_full(rx_index) = '0' and (data_from_link_valid = '1' or pause = '1'))then
                     next_state <= dma_read_data_frame;
                 else
                     next_state <= dma_read_chk_status;
@@ -352,9 +362,9 @@ begin
                     --TODO: create constants for ERROR, DEV_FAULT, etc
                     if(data_from_link(STATUS_ERR) = '1' or data_from_link(STATUS_DF) = '1') then
                     --error occured, add error state
-                        next_state <= transport_idle;
+                        next_state <= wait_for_fis_end;
                     elsif(data_from_link(STATUS_BSY) = '0') then
-                        next_state <= transport_idle;   --Go back to transport idle until error state added
+                        next_state <= wait_for_fis_end;   --Go back to transport idle until error state added
                     else
                         next_state <= dma_read_chk_status;  --should not get here
                     end if;
@@ -418,7 +428,7 @@ begin
                 tx_index <= 0;
                 device_ready <= '0';
                 data_to_link <= (others => '0');
-            when transport_init =>
+            when transport_init_start =>
                 rx_from_link_ready <= '1';
                 tx_fis_array(tx_index).fis_type <= REG_HOST_TO_DEVICE;
                 tx_fis_array(tx_index).crrr_pm <= x"80"; --80 sets C bit
@@ -432,6 +442,9 @@ begin
                 tx_fis_array(tx_index).icc <= x"00";
                 tx_fis_array(tx_index).control <= x"00";
                 tx_fis_array(tx_index).aux <= x"00000000";
+            when transport_init_end =>
+                rx_from_link_ready <= '1';
+                data_to_link <= (others => '1');
             when identify_device_0 =>
                 rx_from_link_ready <= '0';
                 tx_to_link_request <= '1';
@@ -448,18 +461,21 @@ begin
             when identify_device_4 =>
                 data_to_link <= tx_fis_array(tx_index).aux;
             when rx_pio_setup =>
-                tx_to_link_request <= '0';--request to send data
-                rx_from_link_ready <= '1';--request to receive data
+                tx_to_link_request <= '0';
+                rx_from_link_ready <= '1';
                 data_to_link <= x"AAAAAAAA";
             when rx_identify_packet =>
                 data_to_link <= x"BBBBBBBB";
+            when wait_for_fis_end =>
+                tx_to_link_request <= '0';
+                rx_from_link_ready <= '1';
+                data_to_link <= x"00BEEF00";
             when transport_idle =>
                 device_ready <= '1';
                 rx_from_link_ready <= '0';
                 tx_to_link_request <= '0';
                 --if (status_from_link = FIS_RDY) then --FIS RECEIVED
                 if (tx_buffer_full(0) = '1') then   --User is sending "Write" command --Don't transition to DMA Write until a buffer is full
-                    --Build register FIS?
                     --lock tx0 buffer
                     tx0_locked <= '1';
                     tx_buffer_empty(0) <= '0';
@@ -467,7 +483,6 @@ begin
                     tx_index <= 0;
                     --Proceed to DMA Write
                 elsif (tx_buffer_full(1) = '1') then
-                        --Build register FIS?
                         --lock tx1 buffer
                         tx1_locked <= '1';
                         tx_buffer_empty(0) <= '0';
@@ -483,8 +498,6 @@ begin
     ----------------------------------------------- --------------------------------------
 --========================================================================================
             -- DMA Write EXT SM states
-            --TODO: check last states, create missing signals
-                --data_to_link, use data_to_link or need intermediary signal?
             when dma_write_idle     =>
                 --build register host to device DMA Write FIS
                 tx_read_ptr <= 0;
@@ -493,7 +506,7 @@ begin
                 tx_fis_array(tx_index).command <= WRITE_DMA_EXT;
                 tx_fis_array(tx_index).features <= x"00";
                 tx_fis_array(tx_index).lba <= lba(23 downto 0);
-                tx_fis_array(tx_index).device <= x"40";
+                tx_fis_array(tx_index).device <= x"E0";
                 tx_fis_array(tx_index).features_ext <= x"00";
                 tx_fis_array(tx_index).lba_ext <= lba(47 downto 24);
                 tx_fis_array(tx_index).count <= WRITE_SECTOR_COUNT; --on most drives 1 logical sector := 512 bytes
@@ -514,10 +527,9 @@ begin
                                tx_fis_array(tx_index).count;
             when dma_write_reg_fis_4    =>
                 data_to_link <= tx_fis_array(tx_index).aux;
-                    --SET DEVICE BUSY BIT?
             when dma_write_chk_activate =>
-                tx_to_link_request <= '0';--request to send data
-                rx_from_link_ready <= '1';--request to receive data
+                tx_to_link_request <= '0';
+                rx_from_link_ready <= '1';
                 data_to_link <= x"F0F0F0F0";
             --when dma_write_data_idle => --Activate received, wait until link is ready for data
             --    rx_from_link_ready <= '0';
@@ -545,17 +557,15 @@ begin
             when dma_write_chk_status   =>  ----UPDATE THIS STATE
                 rx_from_link_ready <= '1';
                 if(data_from_link (7 downto 0) = REG_DEVICE_TO_HOST) then
-                    rx_from_link_ready <= '0';
+                    --rx_from_link_ready <= '0';
                     --check error bit and device fault bit in the  Status field.. if error is asserted can check error field
                     --TODO: create constants for ERROR, DEV_FAULT, etc
                     if(data_from_link(STATUS_ERR) = '1' or data_from_link(STATUS_DF) = '1') then
                         --error occured
                     elsif(data_from_link(STATUS_BSY) = '0') then
                     else
-                        --Loop here or go somewhere else?
                     end if;
                 --elsif(error) then
-                --  give up
                 end if;
             when pause_data_tx =>
                 if(pause = '0')then
@@ -565,17 +575,16 @@ begin
                 end if;
 --========================================================================================
             -- DMA Read EXT SM states
-            --TODO: create state logic/assignments, check last states, create missing signals
             when dma_read_idle      =>
                 rx_write_ptr <= 0;
                 --rx_from_link_ready <= '0';
                 --build register host to device DMA Read FIS
                 rx_fis_array(rx_index).fis_type <= REG_HOST_TO_DEVICE;
-                rx_fis_array(rx_index).crrr_pm <= x"00";
+                rx_fis_array(rx_index).crrr_pm <= x"80";
                 rx_fis_array(rx_index).command <= READ_DMA_EXT;
                 rx_fis_array(rx_index).features <= x"00";
                 rx_fis_array(rx_index).lba <= lba(23 downto 0);
-                rx_fis_array(rx_index).device <= x"40";
+                rx_fis_array(rx_index).device <= x"E0";
                 rx_fis_array(rx_index).features_ext <= x"00";
                 rx_fis_array(rx_index).lba_ext <= lba(47 downto 24);
                 rx_fis_array(rx_index).count <= WRITE_SECTOR_COUNT; --on most drives 1 logical sector := 512 bytes
@@ -597,8 +606,6 @@ begin
                                rx_fis_array(rx_index).count;
             when dma_read_reg_fis_4 =>
                 data_to_link <= rx_fis_array(rx_index).aux;
-                --SET DEVICE BUSY BIT?
-
             when dma_read_data_fis  => --pick a buffer, must be completely empty
                 tx_to_link_request <= '0';
                 rx_from_link_ready <= '1';
@@ -627,20 +634,18 @@ begin
                     end if;
                 --else
                 end if;
-            when dma_read_chk_status    =>  ----UPDATE THIS STATE
+            when dma_read_chk_status =>
                 rx_from_link_ready <= '1';
                 if(data_from_link (7 downto 0) = REG_DEVICE_TO_HOST) then
-                    rx_from_link_ready <= '0';
+                    --rx_from_link_ready <= '0';
                     --check error bit and device fault bit in the  Status field.. if error is asserted can check error field
                     --TODO: create constants for ERROR, DEV_FAULT, etc
                     if(data_from_link(STATUS_ERR) = '1' or data_from_link(STATUS_DF) = '1') then
                         --error occured
                     elsif(data_from_link(STATUS_BSY) = '0') then
                     else
-                        --Loop here or go somewhere else?
                     end if;
                 --elsif(error) then
-                --  give up
                 end if;
 --========================================================================================
             when others => -- state <= transport_idle;

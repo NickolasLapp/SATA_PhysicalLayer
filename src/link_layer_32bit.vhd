@@ -832,8 +832,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '0';				-- reset the scrambler component (active low) using the independent reset
 
-									if (s_rx_data_in(31 downto 0)=R_RDYp) then
-										s_trans_status_out(c_l_link_ready)				<= '0';				-- inform the Transport Layer that the Link Layer is ready for data
+									if (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=R_RDYp) then
+										s_trans_status_out(c_l_link_ready)				<= '1';				-- inform the Transport Layer that the Link Layer is ready for data
 									else
 										s_trans_status_out(c_l_link_ready)				<= '0';				-- inform the Transport Layer that the Link Layer is not ready for data
 									end if;
@@ -851,6 +851,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									end if;
 									s_trans_status_out(c_l_rcv_data_valid)			<= '0';				-- inform the Transport Layer that the Link Layer is not sending valid receive data
 									s_trans_status_out(c_l_link_ready)				<= '1';				-- inform the Transport Layer that the Link Layer is ready for data
+                                    --s_trans_status_out(c_l_link_ready)                <= '0';
 									-----s_trans_status_out(c_l_link_ready)				<= '0';				-- inform the Transport Layer that the Link Layer is not ready for data
 									s_trans_status_out(c_l_transmit_good) 			<= '0';				-- reset the transmit good status to zero
 									s_trans_status_out(c_l_transmit_bad) 			<= '0';				-- reset the transmit bad status to zero
@@ -1258,7 +1259,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										else
 											s_eof										<= '0';											-- continue the crc calculation
 										end if;
-	
+
 										if(s_primitive_in_temp = '1' and s_rx_data_in = EOFp) then
 											s_rx_data_out(31 downto 0)					<= c_no_data;			-- no data to transmit to the Transport Layer
 											s_trans_status_out(c_l_rcv_data_valid)			<= '0';				-- inform the Transport Layer that the Link Layer is not sending valid receive data
