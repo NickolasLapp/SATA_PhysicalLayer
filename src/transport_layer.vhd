@@ -474,6 +474,10 @@ begin
                 device_ready <= '1';
                 rx_from_link_ready <= '0';
                 tx_to_link_request <= '0';
+
+                if(rx_buffer_empty(0) = '1')then rx_buffer_full(0) <= '0'; end if;
+                if(rx_buffer_empty(1) = '1')then rx_buffer_full(1) <= '0'; end if;
+
                 --if (status_from_link = FIS_RDY) then --FIS RECEIVED
                 if (tx_buffer_full(0) = '1') then   --User is sending "Write" command --Don't transition to DMA Write until a buffer is full
                     --lock tx0 buffer
@@ -570,6 +574,7 @@ begin
             when pause_data_tx =>
                 if(pause = '0')then
                     data_to_link <= paused_data_to_link;
+                    tx_read_ptr <= tx_read_ptr + 1;
                 else
                     data_to_link <= x"FFFFFFFF"; --value for debugging
                 end if;
@@ -631,7 +636,7 @@ begin
                         rx_write_ptr <= rx_write_ptr + 1;
                     else
                         rx_buffer_full(rx_index) <= '1';
-                        rx_from_link_ready <= '0'; --not ready to receive more data
+                        --rx_from_link_ready <= '0'; --not ready to receive more data, should be uncommented but link layer bug breaks stuff if it is
                         if(rx_index = 0) then
                             rx0_locked <= '0';
                         else

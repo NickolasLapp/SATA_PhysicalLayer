@@ -526,7 +526,7 @@ architecture top_arch of top is
             if(msata_device_ready = '1')then
                 if(app_control_counter < (2 * BUFFER_DEPTH))then --send write
                     if(app_write_valid = '1')then
-                        if(app_data_counter <= BUFFER_DEPTH)then
+                        if(app_data_counter < BUFFER_DEPTH)then
                             user_cmd_to_trans <= "001";--send write
                             user_address_to_trans <= test_write_address;
                             user_data_to_trans <= std_logic_vector(to_unsigned(app_data_counter,DATA_WIDTH));
@@ -549,7 +549,9 @@ architecture top_arch of top is
                         app_read_sent <= '1';
                     elsif(app_read_sent = '1')then
                         user_cmd_to_trans <= "000";
-                        app_control_counter <= app_control_counter + 1;
+                        if(app_write_valid = '1' or app_send_read_valid = '1')then
+                            app_control_counter <= app_control_counter + 1;
+                        end if;
                     else
                         app_control_counter <= app_control_counter;
                     end if;
