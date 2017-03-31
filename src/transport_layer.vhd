@@ -111,7 +111,21 @@ architecture transport_layer_arch of transport_layer is
     constant STATUS_DF : integer := 0;
     constant STATUS_BSY : integer := 0;
 
+
+
+signal pause_just_finished  : std_logic;
 begin
+
+
+
+    process(clk,rst_n)
+        begin
+        if(rst_n = '0')then
+             pause_just_finished <= '0';
+        elsif(rising_edge(clk))then
+             pause_just_finished <= pause;
+        end if;
+    end process;
 
 --=================================================================================================================
 --Transport Layer Finite State Machine
@@ -126,7 +140,7 @@ begin
     end process;
 
     transport_next_state_logic: process (current_state, status_from_link, link_rdy, data_from_link,link_fis_type, user_command,rst_n,
-                                         pause, tx_index, rx_index, tx_buffer_full, rx_buffer_full, tx_read_ptr,data_from_link_valid)
+                                         pause, tx_index, rx_index, tx_buffer_full, rx_buffer_full, tx_read_ptr,data_from_link_valid, pause_just_finished)
       begin
 
         case (current_state) is
@@ -147,7 +161,7 @@ begin
                     next_state <= transport_init_start;
                 end if;
             when transport_init_end =>    --wait until link has finished sending the register device to host FIS
-                if(data_from_link_valid = '1' or pause = '1')then
+                if(data_from_link_valid = '1' or pause_just_finished = '1')then
                     next_state <= transport_init_end;
                 else
                     next_state <= identify_device_0;
@@ -195,7 +209,7 @@ begin
                     next_state <= rx_identify_packet;
                 end if;
             when wait_for_fis_end =>
-                if(data_from_link_valid = '1' or pause = '1')then--link still transmitting uninteresting data
+                if(data_from_link_valid = '1' or pause_just_finished = '1')then--link still transmitting uninteresting data
                     next_state <= wait_for_fis_end;
                 else
                     next_state <= transport_idle;
@@ -226,25 +240,25 @@ begin
                     next_state <= dma_write_reg_fis_0;
                 end if;
             when dma_write_reg_fis_1    =>
-                if(pause = '0')then
+                if(link_rdy = '1' and pause = '0')then
                     next_state <= dma_write_reg_fis_2;
                 else
                     next_state <= dma_write_reg_fis_1;
                 end if;
             when dma_write_reg_fis_2    =>
-                if(pause = '0')then
+                if(link_rdy = '1' and pause = '0')then
                     next_state <= dma_write_reg_fis_3;
                 else
                     next_state <= dma_write_reg_fis_2;
                 end if;
             when dma_write_reg_fis_3    =>
-                if(pause = '0')then
+                if(link_rdy = '1' and pause = '0')then
                     next_state <= dma_write_reg_fis_4;
                 else
                     next_state <= dma_write_reg_fis_3;
                 end if;
             when dma_write_reg_fis_4    =>
-                if(pause = '0')then
+                if(link_rdy = '1' and pause = '0')then
                     next_state <= dma_write_chk_activate;
                 else
                     next_state <= dma_write_reg_fis_4;
@@ -263,15 +277,15 @@ begin
             --        next_state <= dma_write_data_idle;
             --    end if;
             when dma_write_data_fis =>
-                if(pause = '0' and link_rdy = '1')then
+                if(pause_just_finished = '0' and link_rdy = '1')then
                     next_state <= dma_write_data_frame;
                 else
                     next_state <= dma_write_data_fis;
                 end if;
             when dma_write_data_frame   =>
-                if(pause = '1')then
+                if(pause_just_finished = '1')then
                     next_state <= pause_data_tx;
-                elsif(tx_read_ptr < BUFFER_DEPTH and (link_rdy = '1' or pause = '1'))then
+                elsif(tx_read_ptr < BUFFER_DEPTH and link_rdy = '1')then
                     next_state <= dma_write_data_frame;
                 else
                     next_state <= dma_write_chk_status;
@@ -315,28 +329,28 @@ begin
                     --next_state <= pause_fis_tx;
                 end if;
             when dma_read_reg_fis_1 =>
-                if(pause = '0') then
+                if(link_rdy = '1' and pause = '0') then
                     next_state <= dma_read_reg_fis_2;
                 else
                     next_state <= dma_read_reg_fis_1;
                     --next_state <= pause_fis_tx;
                 end if;
             when dma_read_reg_fis_2 =>
-                if(pause = '0') then
+                if(link_rdy = '1' and pause = '0') then
                     next_state <= dma_read_reg_fis_3;
                 else
                     next_state <= dma_read_reg_fis_2;
                     --next_state <= pause_fis_tx;
                 end if;
             when dma_read_reg_fis_3 =>
-                if(pause = '0') then
+                if(link_rdy = '1' and pause = '0') then
                     next_state <= dma_read_reg_fis_4;
                 else
                     next_state <= dma_read_reg_fis_3;
                     --next_state <= pause_fis_tx;
                 end if;
             when dma_read_reg_fis_4 =>
-                if(pause = '0') then
+                if(link_rdy = '1' and pause = '0') then
                     next_state <= dma_read_data_fis;
                 else
                     next_state <= dma_read_reg_fis_4;
@@ -351,7 +365,7 @@ begin
                 end if;
             when dma_read_data_frame    =>
                 --if(rx_full(rx_index) = '0') then
-                if(rx_buffer_full(rx_index) = '0' and (data_from_link_valid = '1' or pause = '1'))then
+                if(rx_buffer_full(rx_index) = '0' and (data_from_link_valid = '1' or pause_just_finished = '1'))then
                     next_state <= dma_read_data_frame;
                 else
                     next_state <= dma_read_chk_status;
@@ -399,7 +413,7 @@ begin
 
             tx_index <= 0;
             device_ready <= '0';
-            data_to_link <= (others => '0');
+            data_to_link <= (others => '1');
         elsif(rising_edge(clk))then
         case (current_state) is
         ----------------------------------------------- -----------------------------------------------
@@ -427,7 +441,7 @@ begin
 
                 tx_index <= 0;
                 device_ready <= '0';
-                data_to_link <= (others => '0');
+                data_to_link <= (others => '1');
             when transport_init_start =>
                 rx_from_link_ready <= '1';
                 tx_fis_array(tx_index).fis_type <= REG_HOST_TO_DEVICE;
@@ -474,6 +488,7 @@ begin
                 device_ready <= '1';
                 rx_from_link_ready <= '0';
                 tx_to_link_request <= '0';
+                data_to_link <= x"AAAAAAAA";
 
                 if(rx_buffer_empty(0) = '1')then rx_buffer_full(0) <= '0'; end if;
                 if(rx_buffer_empty(1) = '1')then rx_buffer_full(1) <= '0'; end if;

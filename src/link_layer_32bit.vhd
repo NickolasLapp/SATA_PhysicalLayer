@@ -122,6 +122,7 @@ component scrambler is
   port (clk 		: in std_logic;
 		rst_n		: in std_logic;
 		scram_en	: in std_logic;
+        scram_pause : in std_logic;
 		scram_rst	: in std_logic;
 		scram_rdy 	: out std_logic;
 		data_in 	: in std_logic_vector (31 downto 0);
@@ -140,6 +141,10 @@ component crc_gen_32 is
 end component;
 
 -- signals
+	-- debug signals
+signal transmit_good_status	: std_logic;
+signal transmit_bad_status		: std_logic;
+
 	-- general signals
 signal s_clk 				: std_logic;							-- clock for FPGA logic
 signal s_rst_n 				: std_logic;							-- active low reset
@@ -161,6 +166,15 @@ signal s_lfsr_data_out		: std_logic_vector(31 downto 0);		-- scrambled data from
 signal s_lfsr_en			: std_logic;							-- enable to begin scrambling/descrambling
 signal s_lfsr_rst			: std_logic;							-- internal reset signal to reset scrambling without a system reset
 signal s_scram_rdy			: std_logic;
+signal s_scram_pause		: std_logic;
+
+	-- CONTp scrambler (lfsr) signals
+signal s_cont_lfsr_data_in		: std_logic_vector(31 downto 0);		-- data from Transport to be scrambled, or data from Physical to be descrambled
+signal s_cont_lfsr_data_out		: std_logic_vector(31 downto 0);		-- scrambled data from Transport to be sent to Physical, or descrambled data from Physical to be sent to Transport
+signal s_cont_lfsr_en			: std_logic;							-- enable to begin scrambling/descrambling
+signal s_cont_lfsr_rst			: std_logic;							-- internal reset signal to reset scrambling without a system reset
+signal s_cont_scram_rdy			: std_logic;
+signal s_cont_scram_pause		: std_logic;
 
 	-- crc generator signals
 signal s_crc_data_in		: std_logic_vector(31 downto 0);		-- data from which the CRC is calculated
@@ -170,14 +184,26 @@ signal s_crc_data_valid		: std_logic;							-- flag indicating that the input da
 signal s_crc_data_valid_prev: std_logic;
 signal s_rx_data_in_temp	: std_logic_vector(31 downto 0);		-- vector that holds the previous primitive
 signal s_cont_flag			: std_logic;							-- flag to indicate that CONTp has been received
+signal s_cont_flag_transmit	: std_logic;							-- flagh to indicate that CONTp is being transmitted
 
 signal s_primitive_in_temp 	: std_logic; 					-- Flag high when primitive primitive received or last primitive was contp
 signal transmit_request		: std_logic;
 signal pause_just_finished  : std_logic;
+signal s_primitive_out_temp	: std_logic;
+signal s_tx_data_out_temp	: std_logic_vector(31 downto 0);		-- transmit data out (Physical Layer)
+
+signal s_tx_data_in_reg		: std_logic_vector(31 downto 0);
+signal long_pause_flag		: std_logic;
 
 signal crc_started 			: std_logic;
+signal s_primitive 			: std_logic_vector(31 downto 0);
 
 begin
+-- debug signals
+transmit_good_status <= s_trans_status_out(c_l_transmit_good);
+transmit_bad_status <= s_trans_status_out(c_l_transmit_bad);
+
+
 -- assign signals to inputs/outputs
 s_clk 				<= clk;
 s_rst_n 			<= rst_n;
@@ -191,55 +217,118 @@ s_phy_status_in(3 downto 0) 	<= phy_status_in(3 downto 0);
 
 phy_status_out <= s_phy_status_out;
 
+process (s_rst_n, s_clk)
+	begin
+		if(s_rst_n = '0') then
+			s_tx_data_in_reg		<= x"00000000";
+		elsif (rising_edge(s_clk)) then
+			if (s_trans_status_in(c_l_transmit_request) = '1') then
+				s_tx_data_in_reg		<= tx_data_in;
+			end if;
+		end if;
+	end process;
+
+
+process (s_rst_n, s_clk)
+	begin
+		if(s_rst_n = '0') then
+			long_pause_flag <= '0';
+		elsif (rising_edge(s_clk)) then
+			if (pause_just_finished = '1') then
+				long_pause_flag <= long_pause_flag;
+			elsif (s_trans_status_in(c_l_transmit_request) = '0' and s_phy_status_in(c_l_pause_all) = '1') then
+				long_pause_flag <= '1';
+			else
+				long_pause_flag <= '0';
+			end if;
+		end if;
+	end process;
+
+
 process (s_clk, s_rst_n)
 	begin
 		if(s_rst_n = '0') then
-			pause_just_finished <= '0';
-			s_crc_data_valid_prev <= '0';
+			pause_just_finished 	<= '0';
+			s_crc_data_valid_prev 	<= '0';
+		--	s_tx_data_in_reg		<= x"00000000";
 		elsif (rising_edge(s_clk)) then
-			pause_just_finished <= phy_status_in(c_l_pause_all);
-			s_crc_data_valid_prev <= s_crc_data_valid;
+			pause_just_finished		<= phy_status_in(c_l_pause_all);
+			s_crc_data_valid_prev 	<= s_crc_data_valid;
+
 		end if;
 	end process;
 
 -- Receive CONTp Functionality (assigns s_rx_data_in)
-CONTP_MEMORY: process (s_clk,s_rst_n)						-- memory to latch the previous valid primitive from the Physical Layer
+RECEIVE_CONTP: process (s_rst_n, phy_status_in, rx_data_in, s_cont_flag) -- assign s_rx_data_in based on whether CONTp is active
     begin
-      if (s_rst_n = '0') then
-        s_rx_data_in_temp	<= x"00000000";												-- initialize the temp value when reset is active
-      elsif (rising_edge(s_clk)) then
-		if(rx_data_in /= CONTp and s_phy_status_in(c_l_primitive_in) = '1' and s_phy_status_in(c_l_pause_all) /='1') then
-			s_rx_data_in_temp <= rx_data_in;											-- update the temp value if there is a valid primitive from the Physical Layer that is not CONTp
-		end if;
-      end if;
-	  end process;
-
-CONTP_SUPPORT: process (s_clk, s_rst_n, phy_status_in, rx_data_in, s_rx_data_in_temp, s_cont_flag) -- assign s_rx_data_in based on whether CONTp is active
-    begin
-      if (s_rst_n = '0') then
-		s_rx_data_in 	<= rx_data_in;													-- default signal assignment for s_rx_data_in when CONTp has not yet been used
-		s_cont_flag		<= '0';															-- indicate that CONTp is not active
-        s_primitive_in_temp <= '0';
-      elsif(rising_edge(s_clk)) then
-		if(phy_status_in(c_l_primitive_in) = '1' and rx_data_in = CONTp) then			-- Physical Layer sends a valid CONTp
-			s_rx_data_in <= s_rx_data_in_temp;											-- s_rx_data_in gets assigned to be the previous valid primitive
-			s_cont_flag <= '1';															-- indicate that CONTp is active
-            s_primitive_in_temp <= '1';
-		elsif(phy_status_in(c_l_primitive_in) = '1' and s_phy_status_in(c_l_pause_all) /='1') then								-- Physical Layer sends a new valid primitive
-			s_rx_data_in <= rx_data_in;													-- s_rx_data_in gets assigned the input from the Physical Layer
-			s_cont_flag <= '0';															-- CONTp is inactive
-			s_primitive_in_temp <= '1';
+     	if (s_rst_n = '0') then
+			s_rx_data_in 				<= (others => '0');												-- default signal assignment for s_rx_data_in when CONTp has not yet been used
+			s_primitive					<= (others => '0');
+			s_cont_flag					<= '0';														-- indicate that CONTp is not active
+		elsif (phy_status_in(c_l_primitive_in) = '1' and rx_data_in /= ALIGNp) then								-- Physical Layer sends a valid CONTp
+			if(rx_data_in /= CONTp) then
+				s_primitive	 			<= rx_data_in;
+				s_rx_data_in 			<= rx_data_in;
+				s_cont_flag 			<= '0';
+			else
+				s_primitive 			<= s_primitive;
+				s_rx_data_in 			<= s_primitive;
+				s_cont_flag 			<= '1';
+			end if;
 		elsif(s_cont_flag = '1') then
-			s_rx_data_in <= s_rx_data_in_temp;
-			s_cont_flag <= '1';
-			s_primitive_in_temp <= '1';
-		else -- not recieving a prim, and cont_flag = '0'
-			s_rx_data_in <= rx_data_in;													-- default
-			s_cont_flag <= '0';
-			s_primitive_in_temp <= '0';
+			s_primitive 				<= s_primitive;
+			s_rx_data_in 				<= s_primitive;
+			s_cont_flag 				<= '1';
+		else -- not recieving a prim, and cont_flag = '0' --> data from device
+			s_primitive 				<= s_primitive;
+			s_rx_data_in 				<= rx_data_in;
+			s_cont_flag 				<= '0';
 		end if;
-      end if;
   end process;
+
+
+
+-- Transmit CONTp Functionality (assigns s_rx_data_in)
+--TRANSMIT_CONTP_MEMORY: process (s_clk,s_rst_n)						-- memory to latch the previous valid primitive from the Physical Layer
+--    begin
+--      if (s_rst_n = '0') then
+--        s_tx_data_out_temp	<= x"00000000";												-- initialize the temp value when reset is active
+--      elsif (rising_edge(s_clk)) then
+--		if(rx_data_in /= CONTp and s_phy_status_in(c_l_primitive_in) = '1' and s_phy_status_in(c_l_pause_all) /='1') then
+--			s_tx_data_out_temp <= s_tx_data_out;											-- update the temp value if there is a valid primitive from the Physical Layer that is not CONTp
+--		end if;
+--      end if;
+--	  end process;
+
+--TRANSMIT_CONTP_SUPPORT: process (s_clk, s_rst_n, phy_status_in, s_tx_data_out, s_tx_data_out_temp)
+ --   begin
+--      if (s_rst_n = '0') then
+--		tx_data_out 	<= s_tx_data_out;													-- default signal assignment for s_rx_data_in when CONTp has not yet been used
+--		s_cont_flag_transmit		<= '0';															-- indicate that CONTp is not active
+--		s_cont_lfsr_en			<= '0';			-- start the lfsr scrambler
+--		s_cont_lfsr_rst			<= '1';			-- start the lfsr scrambler
+--        --s_primitive_out_temp <= '0';
+--      elsif(rising_edge(s_clk)) then
+--      s_cont_lfsr_rst			<= '0';			-- start the lfsr scrambler
+--		if(phy_status_in(c_l_primitive_in) = '1' and s_tx_data_out = s_tx_data_out_temp) then			-- repeated primitive
+--			tx_data_out <= CONTp;											-- s_rx_data_in gets assigned to be the previous valid primitive
+--			s_cont_flag_transmit <= '1';															-- indicate that CONTp is active
+--			s_cont_lfsr_en			<= '1';			-- start the lfsr scrambler
+ --           --s_primitive_out_temp <= '1';
+--		elsif(s_cont_flag_transmit = '1') then
+--			tx_data_out <= s_rx_data_in_temp;
+--			s_cont_flag_transmit <= '1';
+--			s_cont_lfsr_en			<= '1';			-- start the lfsr scrambler
+--			--s_primitive_out_temp <= '1';
+--		else -- not recieving a prim, and cont_flag = '0'
+--			tx_data_out <= s_tx_data_out;													-- default
+--			s_cont_flag_transmit <= '0';
+--			s_cont_lfsr_en			<= '0';			-- start the lfsr scrambler
+--			--s_primitive_out_temp <= '0';
+--		end if;
+--      end if;
+--  end process;
+
 
 process(s_clk, s_rst_n)
 	begin
@@ -261,10 +350,21 @@ lfsr_component : scrambler
          port map  (clk					=> s_clk,
 		 			rst_n				=> s_rst_n,
 					scram_en			=> s_lfsr_en,
+					scram_pause 		=> s_scram_pause,
 					scram_rst			=> s_lfsr_rst,
 					scram_rdy			=> s_scram_rdy,
 					data_in				=> s_lfsr_data_in,
 					data_out 			=> s_lfsr_data_out);
+
+cont_lfsr_component : scrambler
+         port map  (clk					=> s_clk,
+		 			rst_n				=> s_rst_n,
+					scram_en			=> s_cont_lfsr_en,
+					scram_pause 		=> s_cont_scram_pause,
+					scram_rst			=> s_cont_lfsr_rst,
+					scram_rdy			=> s_cont_scram_rdy,
+					data_in				=> s_cont_lfsr_data_in,
+					data_out 			=> s_cont_lfsr_data_out);
 
 crc_component : crc_gen_32
 		 port map (clk      			=> s_clk,
@@ -289,7 +389,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
     end process;
 
 
-    NEXT_STATE_LOGIC: process (current_state, s_rst_n, s_rx_data_in, s_trans_status_in, s_tx_data_in, s_phy_status_in, s_crc, s_cont_flag, s_primitive_in_temp,pause_just_finished)
+    NEXT_STATE_LOGIC: process (current_state, s_rst_n, s_rx_data_in, s_trans_status_in, s_tx_data_in, s_phy_status_in, s_crc, s_cont_flag, s_primitive_in_temp,pause_just_finished, long_pause_flag)
       begin
         case (current_state) is
 			-- Idle SM states (top level)
@@ -357,6 +457,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 			-- In L_SendChkRdy, the Link Layer verifies that the Physical Layer is ready to receive the data before sending the frame from the Transport Layer
 			when L_SendChkRdy	  	=> if (s_phy_status_in(c_l_phyrdy)/='1') then			-- PHYRDYn: Physical Layer indicates the communication channel failed
 										next_state <= L_NoCommErr;
+									elsif (s_phy_status_in(c_l_pause_all) = '1') then				-- Physical Layer pauses transmission (for ALIGNp)
+										next_state <= L_SendChkRdy;
 									elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=X_RDYp) then			-- if the Physical Layer is ready to send data, switch to the receive state machine
 										next_state <= L_RcvWaitFifo;
 									elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=R_RDYp) then			-- if the Physical Layer is ready to receive data, send the Start of Frame (SOF) primitive
@@ -371,6 +473,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										next_state <= L_Idle;
 									elsif (s_phy_status_in(c_l_pause_all) = '1') then				-- Physical Layer pauses transmission (for ALIGNp)
 										next_state <= L_SendSOF;
+									--elsif (pause_just_finished = '1') then
+									--	next_state <= L_SendSOF;
 									else
 										next_state <= L_SendData;							-- immediately after the SOFp has been sent, begin sending the FIS payload
 									end if;
@@ -383,9 +487,12 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										next_state <= L_SyncEscape;
 									elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=DMATp) then	-- Physical Layer requests end of transmission
 										next_state <= L_SendCRC;
-									elsif (s_phy_status_in(c_l_pause_all) = '1') then											-- No more data to transmit
+									--elsif (pause_just_finished = '1') then	-- do not change states immediately after a pause
+									--	next_state <= L_SendData;
+									elsif (s_phy_status_in(c_l_pause_all) = '1') then											-- do not change states during a pause
 										next_state <= L_SendData;
-									elsif (s_trans_status_in(c_l_data_done) = '0') then											-- No more data to transmit
+									elsif ((s_trans_status_in(c_l_data_done) = '0' and pause_just_finished = '0') or long_pause_flag = '1') then
+									--elsif (s_trans_status_in(c_l_data_done) = '0') then											-- No more data to transmit
 										next_state <= L_SendCRC;
 									elsif ((s_trans_status_in(c_l_data_done) = '1' and s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=HOLDp)) then	-- more data to transmit
 										next_state <= L_RcvrHold;
@@ -633,6 +740,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low)
+									s_scram_pause								<= '0';
+
 
 			when L_SyncEscape  	=>	s_tx_data_out(31 downto 0) 						<= SYNCp;			-- transmit SYNCp to the Physical Layer
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -661,6 +770,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low)
+									s_scram_pause								<= '0';
+
 
 			when L_NoCommErr  	=>	s_tx_data_out(31 downto 0) 						<= ALIGNp;			-- Transmit ALIGNp to the Physical Layer, indicating the Link Layer wants to reset the comm channel
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -689,6 +800,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low)
+									s_scram_pause								<= '0';
+
 
 			when L_NoComm  		=>	s_tx_data_out(31 downto 0) 						<= ALIGNp;			-- Transmit ALIGNp to the Physical Layer, indicating the Link Layer wants to reset the comm channel
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -717,6 +830,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low)
+									s_scram_pause								<= '0';
+
 
 			when L_SendAlign  	=> 	s_tx_data_out(31 downto 0) 						<= ALIGNp;			-- Transmit ALIGNp to the Physical Layer, indicating the Link Layer wants to reset the comm channel
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -745,6 +860,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low)
+									s_scram_pause								<= '0';
+
 
 			when L_RESET	  	=> 	s_tx_data_out(31 downto 0) 						<= c_no_data;		-- no data to transmit to the Physical Layer
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -773,6 +890,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause								<= '0';
+
 
 			-- Power Management SM states
 			when L_PMDeny	  	=> 	s_tx_data_out(31 downto 0) 						<= PMNAKp;			-- transmit PMNAKp to inform the device that power management is not supported
@@ -802,6 +921,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause								<= '0';
+
 
 			-- Transmit SM states
 			when L_SendChkRdy	=> 	s_tx_data_out(31 downto 0) 						<= X_RDYp;			-- send receiver ready to the Physical Layer, informing the device that a transmission will be coming
@@ -831,6 +952,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '0';				-- reset the scrambler component (active low) using the independent reset
+									s_scram_pause								<= '0';
 
 									if (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=R_RDYp) then
 										s_trans_status_out(c_l_link_ready)				<= '1';				-- inform the Transport Layer that the Link Layer is ready for data
@@ -867,8 +989,9 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<=s_tx_data_in;		-- data from transport
 									--s_lfsr_en										<= '1';				-- do enable the scrambler component
 									s_lfsr_rst										<= '1';				-- reset is done
+									s_scram_pause									<= '0';
 
-									if (s_phy_status_in(c_l_pause_all) = '1') then
+									if (pause_just_finished = '1') then
 										s_crc_data_valid 							<= '0';				-- pause the crc generator
 										s_lfsr_en									<= '0';				-- pause the scrambler component
 									else
@@ -906,29 +1029,34 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									-- s_lfsr_en										<= '1';				-- enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
 
-									if (s_phy_status_in(c_l_pause_all) = '1') then
+
+									if (pause_just_finished = '1' and s_trans_status_in(c_l_data_done) = '0') then
+										s_crc_data_in								<= s_tx_data_in_reg;		-- no data to input to the crc component
+										s_crc_data_valid 							<= '1';				-- inform the crc component that the input data are no longer valid
+										s_eof 										<= '0';				-- end the crc calculation
+
+										s_lfsr_data_in								<= s_tx_data_in_reg;-- scramble the previous data from the Transport Layer
+										s_lfsr_en									<= '1';				-- enable the scrambler component
+										s_scram_pause								<= '0';
+
+									elsif (s_phy_status_in(c_l_pause_all) = '1') then
+									--if (pause_just_finished = '1') then
 										s_crc_data_in								<= c_no_data;		-- no data to input to the crc component
 										s_crc_data_valid 							<= '0';				-- inform the crc component that the input data are no longer valid
 										s_eof 										<= '0';				-- end the crc calculation
 
 										s_lfsr_data_in 								<= c_no_data;			-- scramble the crc
 										s_lfsr_en									<= '0';				-- enable the scrambler component
+										s_scram_pause								<= '0';
 
-									elsif (s_trans_status_in(c_l_data_done) = '0') then					-- if the transmission is over
+									elsif ((s_trans_status_in(c_l_data_done) = '0' and pause_just_finished = '0') or long_pause_flag = '1') then					-- if the transmission is over
 										s_crc_data_in								<= c_no_data;		-- no data to input to the crc component
 										s_crc_data_valid 							<= '0';				-- inform the crc component that the input data are no longer valid
 										s_eof 										<= '1';				-- end the crc calculation
 
 										s_lfsr_data_in 								<= s_crc;			-- scramble the crc
 										s_lfsr_en									<= '1';				-- enable the scrambler component
-
-								--	elsif (s_phy_status_in(c_l_primitive_in) = '1' and s_rx_data_in(31 downto 0)=HOLDp) then		-- more data to transmit and Physical sends HOLDAp
-								--		s_crc_data_in								<= c_no_data;	-- use the data from the Transport Layer to compute the CRC
-								--		s_crc_data_valid 							<= '0';				-- pause the crc component
-								--		s_eof										<= '0';				-- it is not time for the crc computation to end
-
-								--		s_lfsr_data_in								<= c_no_data;	-- scramble the data from the Transport Layer
-								--		s_lfsr_en									<= '0';				-- pause the scrambler component
+										s_scram_pause								<= '0';
 
 									else
 										s_crc_data_in								<= s_tx_data_in;	-- use the data from the Transport Layer to compute the CRC
@@ -937,20 +1065,22 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 
 										s_lfsr_data_in								<= s_tx_data_in;	-- scramble the data from the Transport Layer
 										s_lfsr_en									<= '1';				-- enable the scrambler component
-
+										s_scram_pause								<= '0';
 									end if;
+
+									--if (s_phy_status_in(c_l_pause_all) = '1' and ) then
+									--	s_scram_pause								<= '1';
+									--else
+									--	s_scram_pause								<= '0';
+									--end if;
 
 			when L_RcvrHold	  	=>	s_tx_data_out(31 downto 0) 						<= HOLDAp;			-- send a hold acknowledge to the Physical Layer
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
 
 									s_phy_status_out(c_l_primitive_out)				<= '1';				-- inform the Physical Layer that a valid primitive is being transmitted
 									s_phy_status_out(c_l_clear_status)				<= '0';				-- the Physical Layer does not need to clear its status vector to the Link Layer
+									s_trans_status_out(c_l_phy_paused)				<= '1';				-- inform the Transport Layer that the Physical Layer has requested a pause
 
-									--if (s_phy_status_in(c_l_pause_all) = '1') then
-										s_trans_status_out(c_l_phy_paused)			<= '1';				-- inform the Transport Layer that the Physical Layer has requested a pause
-									--else
-									--	s_trans_status_out(c_l_phy_paused)			<= '0';				-- inform the Transport Layer that the Physical Layer has not requested a pause
-									--end if;
 									s_trans_status_out(c_l_rcv_data_valid)			<= '0';				-- inform the Transport Layer that the Link Layer is not sending valid receive data
 									s_trans_status_out(c_l_link_ready)				<= '1';				-- inform the Transport Layer that the Link Layer is not ready for data
 									s_trans_status_out(c_l_transmit_good) 			<= '0';				-- reset the transmit good status to zero
@@ -959,30 +1089,15 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_trans_status_out(c_l_comm_err)	 			<= '0';				-- the communication link is good
 									s_trans_status_out(c_l_fail_transmit) 			<= '0';				-- the current transmission has not failed
 
-									--s_crc_data_in									<= c_no_data;		-- no data to input to the crc component
-									--s_crc_data_valid 								<= '0';				-- inform the crc component that the input data is not valid (not part of a FIS payload)
+									s_crc_data_in									<= c_no_data;		-- no data to input to the crc component
+									s_crc_data_valid 								<= '0';				-- inform the crc component that the input data is not valid (not part of a FIS payload)
 									s_sof											<= '0';				-- it is not time for the crc computation to begin
 									s_eof											<= '0';				-- it is not time for the crc computation to end
 
-									--s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
-									--s_lfsr_en										<= '0';				-- do not enable the scrambler component
+									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
+									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
-
-			--						if (s_phy_status_in(c_l_primitive_in) = '1' and s_rx_data_in(31 downto 0)=HOLDp) then		-- more data to transmit and Physical sends HOLDAp
-										s_crc_data_in								<= c_no_data;	-- use the data from the Transport Layer to compute the CRC
-										s_crc_data_valid 							<= '0';				-- pause the crc component
-
-										s_lfsr_data_in								<= c_no_data;	-- scramble the data from the Transport Layer
-										s_lfsr_en									<= '0';				-- pause the scrambler component
-
-			--						else
-			--							s_crc_data_in								<= s_tx_data_in;	-- use the data from the Transport Layer to compute the CRC
-			--							s_crc_data_valid 							<= '1';				-- inform the crc component that the input data is valid (part of a FIS payload)
---
-			--							s_lfsr_data_in								<= s_tx_data_in;	-- scramble the data from the Transport Layer
-			--							s_lfsr_en									<= '1';				-- enable the scrambler component
-
-			--						end if;
+									s_scram_pause								<= '0';
 
 			when L_SendHold	  	=>	s_tx_data_out(31 downto 0) 						<= HOLDp;			-- transmit HOLDp to the Physical Layer
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -1011,6 +1126,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause								<= '0';
+
 
 			when L_SendCRC	=>		s_tx_data_out(31 downto 0) 						<= s_lfsr_data_out;	-- transmit the scrambled CRC to the Physical Layer
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -1039,6 +1156,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= s_crc;			-- scramble the crc
 									--s_lfsr_en										<= '1';				-- enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause								<= '0';
+
 
 									if (s_phy_status_in(c_l_pause_all) = '1') then
 										s_crc_data_valid 							<= '0';				-- pause the crc generator
@@ -1076,6 +1195,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause									<= '0';
+
 
 			when L_Wait		  	=>	s_tx_data_out(31 downto 0) 						<= WTRMp;			-- transmit WTRMp to the Physical Layer
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -1104,6 +1225,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause									<= '0';
+
 
 									if(s_primitive_in_temp = '1' and s_rx_data_in = R_OKp) then		-- if the Physical Layer sends that the reception was okay
 										s_trans_status_out(c_l_transmit_good) 		<= '1';								-- inform the Transport Layer of good transmission
@@ -1143,6 +1266,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '0';				-- reset the descrambler to set the initial condition
+									s_scram_pause									<= '0';
+
 
 			when L_RcvChkRdy	=>	s_tx_data_out(31 downto 0) 						<= R_RDYp;			-- transmit R_RDYp to the Physical Layer, indicating readiness for reception
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -1171,6 +1296,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause									<= '0';
+
 
 			when L_RcvData		=>
 									if(s_trans_status_in(c_l_escape) = '1') then						-- if the Transport Layer requests an end to the FIS
@@ -1183,7 +1310,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										if (s_phy_status_in(c_l_pause_all) = '1') then
 											s_trans_status_out(c_l_phy_paused)			<= '1';				-- inform the Transport Layer that the Physical Layer has requested a pause
 										elsif (s_trans_status_in(c_l_data_done) = '1' and s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=HOLDp) then
-										s_trans_status_out(c_l_phy_paused)			<= '1';
+											s_trans_status_out(c_l_phy_paused)			<= '1';
 										else
 											s_trans_status_out(c_l_phy_paused)			<= '0';				-- inform the Transport Layer that the Physical Layer has not requested a pause
 										end if;
@@ -1203,6 +1330,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 										s_lfsr_en										<= '0';				-- do not enable the scrambler component
 										s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+										s_scram_pause									<= '0';
+
 
 									else 																-- under normal conditions
 										s_tx_data_out(31 downto 0) 						<= R_IPp;			-- Transmit R_IPp to the Physical Layer, indicating that reception is in progress
@@ -1211,8 +1340,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										s_phy_status_out(c_l_primitive_out)				<= '1';				-- inform the Physical Layer that a valid primitive is being transmitted
 										s_phy_status_out(c_l_clear_status)				<= '0';				-- the Physical Layer does not need to clear its status vector to the Link Layer
 
---										if (s_phy_status_in(c_l_pause_all) = '1') then
-										if (pause_just_finished = '1') then
+										if (s_phy_status_in(c_l_pause_all) = '1') then
+										--if (pause_just_finished = '1') then
 											s_trans_status_out(c_l_phy_paused)			<= '1';				-- inform the Transport Layer that the Physical Layer has requested a pause
 										else
 											s_trans_status_out(c_l_phy_paused)			<= '0';				-- inform the Transport Layer that the Physical Layer has not requested a pause
@@ -1233,15 +1362,14 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										s_lfsr_data_in									<= s_rx_data_in;	-- connect the data from the Physical Layer to the input of the descrambler component
 										-- s_lfsr_en										<= '1';				-- start the descrambler component
 										s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+										s_scram_pause								<= '0';
 
---										if(s_crc_data_valid_prev = '0' and s_crc_data_valid = '1' and pause_just_finished = '0') then
 										if(s_crc_data_valid = '1' and crc_started = '0') then
 											s_sof <= '1';
 										else
 											s_sof <= '0';
 										end if;
 
---										if (s_phy_status_in(c_l_pause_all) = '1') then
 										if (pause_just_finished = '1') then
 											s_crc_data_valid							<= '0';
 										elsif (s_scram_rdy = '1') then							-- when the output of the descrambler changes, the output is ready for the CRC
@@ -1250,12 +1378,10 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 											s_crc_data_valid  							<= '0';				-- inform the crc component that the input is not valid
 										end if;
 
---										if (s_phy_status_in(c_l_pause_all) = '1') then
 										if (pause_just_finished = '1') then
 											s_eof										<= '0';
 										elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=EOFp) then	-- if EOFp is received, the FIS data is over
 											s_eof 										<= '1';											-- signal the crc component to stop
-											--s_lfsr_data_in 							<= s_crc;									-- scramble the final crc
 										else
 											s_eof										<= '0';											-- continue the crc calculation
 										end if;
@@ -1307,14 +1433,9 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_eof											<= '0';				-- it is not time for the crc computation to end
 
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
-									-- s_lfsr_en										<= '0';				-- do not enable the scrambler component
+									s_lfsr_en										<= '1';				-- enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
-
-									--if (s_trans_status_in(c_l_fifo_ready) = '1') then					-- if the fifo is ready
-									--	s_lfsr_en									<= '0';
-									--else
-										s_lfsr_en									<= '1';
-									--end if;
+									s_scram_pause									<= '0';
 
 			when L_RcvHold		=>	-- s_tx_data_out(31 downto 0) 						<= c_no_data;		-- no data to transmit to the Physical Layer
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -1322,11 +1443,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									-- s_phy_status_out(c_l_primitive_out)				<= '0';				-- inform the Physical Layer that a valid primitive is not being transmitted
 									s_phy_status_out(c_l_clear_status)				<= '0';				-- the Physical Layer does not need to clear its status vector to the Link Layer
 
-									--if (s_phy_status_in(c_l_pause_all) = '1') then
-										s_trans_status_out(c_l_phy_paused)			<= '1';				-- inform the Transport Layer that the Physical Layer has requested a pause
-									--else
-									--	s_trans_status_out(c_l_phy_paused)			<= '0';				-- inform the Transport Layer that the Physical Layer has not requested a pause
-									--end if;
+									s_trans_status_out(c_l_phy_paused)				<= '1';				-- inform the Transport Layer that the Physical Layer has requested a pause
 									s_trans_status_out(c_l_rcv_data_valid)			<= '0';				-- inform the Transport Layer that the Link Layer is not sending valid receive data
 									s_trans_status_out(c_l_link_ready)				<= '0';				-- inform the Transport Layer that the Link Layer is not ready for data
 									s_trans_status_out(c_l_transmit_good) 			<= '0';				-- reset the transmit good status to zero
@@ -1343,7 +1460,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= s_rx_data_in;	-- connect the data from the Physical Layer to the input of the descrambler component
 									--s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
-
+									s_scram_pause								<= '0';
 
 									if (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0) = HOLDp) then
 										s_lfsr_en										<= '0';
@@ -1352,14 +1469,6 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									else
 										s_lfsr_en										<= '1';
 									end if;
-
-									--if(s_scram_rdy = '1') then
-									--	s_crc_data_in									<= s_lfsr_data_out;		-- no data to input to the crc component
-									--	s_crc_data_valid 								<= '1';				-- inform the crc component that the input data is not valid (not part of a FIS payload)
-									--else
-									--	s_crc_data_in									<= c_no_data;		-- no data to input to the crc component
-										s_crc_data_valid 								<= '0';				-- inform the crc component that the input data is not valid (not part of a FIS payload)
-									--end if;
 
 									if(s_trans_status_in(c_l_escape) = '1') then
 										s_tx_data_out(31 downto 0) 					<= DMATp;			-- transmit DMATp to the Physical Layer if the Transport Layer ends transfer
@@ -1396,12 +1505,15 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause									<= '0';
+
 
 									if (s_phy_status_in(c_l_pause_all) = '1') then
 										s_eof										<= '0';
 									else
 										s_eof										<= '1';				-- end the crc computation
 									end if;
+
 			when L_WaitCRC		=>	s_tx_data_out(31 downto 0) 						<= R_IPp;			-- transmit reception in progress to Physical Layer
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
 
@@ -1429,6 +1541,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause									<= '0';
+
 
 									if (s_phy_status_in(c_l_pause_all) = '1') then
 										s_eof										<= '0';
@@ -1463,6 +1577,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause									<= '0';
+
 
 			when L_GoodEnd	  	=>	s_tx_data_out(31 downto 0) 						<= R_OKp;			-- transmit R_OKp to the Physical Layer, indicating the reception was successful
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -1491,6 +1607,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause									<= '0';
+
 
 			when L_BadEnd		=>	s_tx_data_out(31 downto 0) 						<= R_ERRp;			-- transmit R_ERRp to the Physical Layer, indicating the reception was unsuccessful
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -1519,6 +1637,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause									<= '0';
+
 
 			when others 		=>	s_tx_data_out(31 downto 0) 						<= c_no_data;		-- no data to transmit to the Physical Layer
 									s_rx_data_out(31 downto 0)						<= c_no_data;		-- no data to transmit to the Transport Layer
@@ -1547,6 +1667,8 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_data_in									<= c_no_data;		-- no data to input to the scrambler component
 									s_lfsr_en										<= '0';				-- do not enable the scrambler component
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
+									s_scram_pause									<= '0';
+
         end case;
       end process;
 
