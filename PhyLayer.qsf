@@ -79,35 +79,6 @@ set_instance_assignment -name XCVR_RX_COMMON_MODE_VOLTAGE VTT_0P65V -to rx_seria
 set_instance_assignment -name XCVR_RX_SD_THRESHOLD 5 -to rx_serial_data
 set_location_assignment PIN_AB13 -to USER_PB_FPGA1
 
-set_global_assignment -name VHDL_FILE src/ppm_detector.vhd
-set_global_assignment -name VHDL_FILE src/transport_dummy.vhd
-set_global_assignment -name VHDL_FILE src/rate_match_blk_tb.vhd
-set_global_assignment -name VHDL_FILE src/rate_match_blk.vhd
-set_global_assignment -name VHDL_FILE src/phy_layer_32bit.vhd
-set_global_assignment -name VHDL_FILE src/link_layer_lfsr.vhd
-set_global_assignment -name VHDL_FILE src/link_layer_32bit_writeRead_TB.vhd
-set_global_assignment -name VHDL_FILE src/link_layer_32bit.vhd
-set_global_assignment -name VHDL_FILE src/crc_gen_32.vhd
-set_global_assignment -name VHDL_FILE src/XCVR_CustomReset.vhd
-set_global_assignment -name VHDL_FILE src/byte_orderer.vhd
-set_global_assignment -name VHDL_FILE CustomIP/NativePhy.vhd -library NativePhy
-set_global_assignment -name QIP_FILE CustomIP/NativePhy.qip
-set_global_assignment -name VHDL_FILE src/PhyLayerInit.vhd
-set_global_assignment -name VHDL_FILE src/sata_defines.vhd
-set_global_assignment -name VHDL_FILE src/oob_signaldetect.vhd
-set_global_assignment -name SDC_FILE top.sdc
-set_global_assignment -name VHDL_FILE src/debounce.vhd
-set_global_assignment -name VHDL_FILE src/top.vhd
-set_global_assignment -name SIGNALTAP_FILE stp1.stp
-set_global_assignment -name CDF_FILE output_files/Chain1.cdf
-set_global_assignment -name QIP_FILE CustomIP/XCVR_ResetController.qip
-set_global_assignment -name SIP_FILE CustomIP/XCVR_ResetController.sip
-set_global_assignment -name QIP_FILE CustomIP/XCVR_Reconf.qip
-set_global_assignment -name SIP_FILE CustomIP/XCVR_Reconf.sip
-set_global_assignment -name QIP_FILE CustomIP/testRom.qip
-set_global_assignment -name QIP_FILE CustomIP/rate_match_fifo.qip
-set_global_assignment -name QIP_FILE CustomIP/pll_50MHz_to_37_5MHz.qip
-set_global_assignment -name SIP_FILE CustomIP/pll_50MHz_to_37_5MHz.sip
 set_global_assignment -name SLD_NODE_CREATOR_ID 110 -section_id Std_Capture
 set_global_assignment -name SLD_NODE_ENTITY_NAME sld_signaltap -section_id Std_Capture
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_clk -to "phy_layer_32bit:i_phy_layer_1|txclkout" -section_id Std_Capture
@@ -755,32 +726,16 @@ set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_BUFFER_FULL_STOP=
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_CURRENT_RESOURCE_WIDTH=1" -section_id Link_Layer_Debug
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INCREMENTAL_ROUTING=1" -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[0] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[1] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[2] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[6] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[7] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[8] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[10] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[11] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[12] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[13] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[19] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[20] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[22] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[24] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[25] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[30] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL=1" -section_id Link_Layer_Debug
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_SAMPLE_DEPTH=4096" -section_id Link_Layer_Debug
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_IN_ENABLED=0" -section_id Link_Layer_Debug
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL_PIPELINE=1" -section_id Link_Layer_Debug
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ENABLE_ADVANCED_TRIGGER=1" -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[5] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[9] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[17] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[23] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[28] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[29] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[31] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[94] -to "link_layer_32bit:i_linkLayer1|phy_status_in[0]" -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[95] -to "link_layer_32bit:i_linkLayer1|phy_status_in[1]" -section_id Link_Layer_Debug
@@ -790,13 +745,8 @@ set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[94] -t
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[95] -to "link_layer_32bit:i_linkLayer1|phy_status_in[1]" -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[96] -to "link_layer_32bit:i_linkLayer1|phy_status_in[2]" -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[97] -to "link_layer_32bit:i_linkLayer1|phy_status_in[3]" -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[4] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[15] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[18] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[21] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[26] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[16] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ADVANCED_TRIGGER_ENTITY=sld_reserved_PhyLayer_Link_Layer_Debug_1_76d7," -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[98] -to "link_layer_32bit:i_linkLayer1|phy_status_out[0]" -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[99] -to "link_layer_32bit:i_linkLayer1|phy_status_out[1]" -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[100] -to "link_layer_32bit:i_linkLayer1|s_primitive_in_temp" -section_id Link_Layer_Debug
@@ -1148,11 +1098,830 @@ set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[373] -
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[374] -to "link_layer_32bit:i_linkLayer1|tx_data_out[7]" -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[375] -to "link_layer_32bit:i_linkLayer1|tx_data_out[8]" -section_id Link_Layer_Debug
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[376] -to "link_layer_32bit:i_linkLayer1|tx_data_out[9]" -section_id Link_Layer_Debug
-set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_DATA_BITS=377" -section_id Link_Layer_Debug
-set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_BITS=170" -section_id Link_Layer_Debug
-set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_BITS=377" -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[3] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[14] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
-set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[27] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name VHDL_FILE src/transport_layer.vhd
+set_global_assignment -name VHDL_FILE src/transport_layer_pkg.vhd
+set_global_assignment -name VHDL_FILE src/ppm_detector.vhd
+set_global_assignment -name VHDL_FILE src/transport_dummy.vhd
+set_global_assignment -name VHDL_FILE src/rate_match_blk_tb.vhd
+set_global_assignment -name VHDL_FILE src/rate_match_blk.vhd
+set_global_assignment -name VHDL_FILE src/phy_layer_32bit.vhd
+set_global_assignment -name VHDL_FILE src/link_layer_lfsr.vhd
+set_global_assignment -name VHDL_FILE src/link_layer_32bit_writeRead_TB.vhd
+set_global_assignment -name VHDL_FILE src/link_layer_32bit.vhd
+set_global_assignment -name VHDL_FILE src/crc_gen_32.vhd
+set_global_assignment -name VHDL_FILE src/XCVR_CustomReset.vhd
+set_global_assignment -name VHDL_FILE src/byte_orderer.vhd
+set_global_assignment -name VHDL_FILE CustomIP/NativePhy.vhd -library NativePhy
+set_global_assignment -name QIP_FILE CustomIP/NativePhy.qip
+set_global_assignment -name VHDL_FILE src/PhyLayerInit.vhd
+set_global_assignment -name VHDL_FILE src/sata_defines.vhd
+set_global_assignment -name VHDL_FILE src/oob_signaldetect.vhd
+set_global_assignment -name SDC_FILE top.sdc
+set_global_assignment -name VHDL_FILE src/debounce.vhd
+set_global_assignment -name VHDL_FILE src/top.vhd
+set_global_assignment -name SIGNALTAP_FILE stp1.stp
+set_global_assignment -name CDF_FILE output_files/Chain1.cdf
+set_global_assignment -name QIP_FILE CustomIP/XCVR_ResetController.qip
+set_global_assignment -name SIP_FILE CustomIP/XCVR_ResetController.sip
+set_global_assignment -name QIP_FILE CustomIP/XCVR_Reconf.qip
+set_global_assignment -name SIP_FILE CustomIP/XCVR_Reconf.sip
+set_global_assignment -name QIP_FILE CustomIP/testRom.qip
+set_global_assignment -name QIP_FILE CustomIP/rate_match_fifo.qip
+set_global_assignment -name QIP_FILE CustomIP/pll_50MHz_to_37_5MHz.qip
+set_global_assignment -name SIP_FILE CustomIP/pll_50MHz_to_37_5MHz.sip
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[17] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[20] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[24] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[25] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[27] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[30] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[170] -to "transport_layer:i_transport_layer1|current_state.dma_read_chk_status" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[171] -to "transport_layer:i_transport_layer1|current_state.dma_read_data_fis" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[172] -to "transport_layer:i_transport_layer1|current_state.dma_read_data_frame" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[173] -to "transport_layer:i_transport_layer1|current_state.dma_read_idle" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[174] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_0" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[175] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_1" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[176] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_2" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[177] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_3" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[178] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_4" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[179] -to "transport_layer:i_transport_layer1|current_state.dma_write_chk_activate" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[180] -to "transport_layer:i_transport_layer1|current_state.dma_write_chk_status" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[181] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_fis" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[182] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_frame" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[183] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_idle" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[184] -to "transport_layer:i_transport_layer1|current_state.dma_write_idle" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[185] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_0" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[186] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_1" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[187] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_2" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[188] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_3" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[189] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_4" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[190] -to "transport_layer:i_transport_layer1|current_state.identify_device_0" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[191] -to "transport_layer:i_transport_layer1|current_state.identify_device_1" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[192] -to "transport_layer:i_transport_layer1|current_state.identify_device_2" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[193] -to "transport_layer:i_transport_layer1|current_state.identify_device_3" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[194] -to "transport_layer:i_transport_layer1|current_state.identify_device_4" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[195] -to "transport_layer:i_transport_layer1|current_state.pause_data_tx" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[196] -to "transport_layer:i_transport_layer1|current_state.rx_identify_packet" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[197] -to "transport_layer:i_transport_layer1|current_state.rx_pio_setup" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[198] -to "transport_layer:i_transport_layer1|current_state.transport_idle" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[377] -to "transport_layer:i_transport_layer1|current_state.dma_read_chk_status" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[378] -to "transport_layer:i_transport_layer1|current_state.dma_read_data_fis" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[379] -to "transport_layer:i_transport_layer1|current_state.dma_read_data_frame" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[380] -to "transport_layer:i_transport_layer1|current_state.dma_read_idle" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[381] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_0" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[382] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_1" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[383] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_2" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[384] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_3" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[385] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_4" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[386] -to "transport_layer:i_transport_layer1|current_state.dma_write_chk_activate" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[387] -to "transport_layer:i_transport_layer1|current_state.dma_write_chk_status" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[388] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_fis" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[389] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_frame" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[390] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_idle" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[391] -to "transport_layer:i_transport_layer1|current_state.dma_write_idle" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[392] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_0" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[393] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_1" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[394] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_2" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[395] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_3" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[396] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_4" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[397] -to "transport_layer:i_transport_layer1|current_state.identify_device_0" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[398] -to "transport_layer:i_transport_layer1|current_state.identify_device_1" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[399] -to "transport_layer:i_transport_layer1|current_state.identify_device_2" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[400] -to "transport_layer:i_transport_layer1|current_state.identify_device_3" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[401] -to "transport_layer:i_transport_layer1|current_state.identify_device_4" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[402] -to "transport_layer:i_transport_layer1|current_state.pause_data_tx" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[403] -to "transport_layer:i_transport_layer1|current_state.rx_identify_packet" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[404] -to "transport_layer:i_transport_layer1|current_state.rx_pio_setup" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[405] -to "transport_layer:i_transport_layer1|current_state.transport_idle" -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[2] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[3] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[4] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[9] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[12] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[15] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[199] -to "transport_layer:i_transport_layer1|current_state.transport_init_end" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[200] -to "transport_layer:i_transport_layer1|current_state.transport_init_start" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[201] -to "transport_layer:i_transport_layer1|current_state.transport_reset" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[202] -to "transport_layer:i_transport_layer1|current_state.wait_for_fis_end" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[406] -to "transport_layer:i_transport_layer1|current_state.transport_init_end" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[407] -to "transport_layer:i_transport_layer1|current_state.transport_init_start" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[408] -to "transport_layer:i_transport_layer1|current_state.transport_reset" -section_id Link_Layer_Debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[409] -to "transport_layer:i_transport_layer1|current_state.wait_for_fis_end" -section_id Link_Layer_Debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_DATA_BITS=410" -section_id Link_Layer_Debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_BITS=203" -section_id Link_Layer_Debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_BITS=410" -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[1] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[7] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[8] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[10] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[22] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[23] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[29] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[18] -to Link_Layer_Debug|vcc -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[26] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[28] -to Link_Layer_Debug|gnd -section_id Link_Layer_Debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ADVANCED_TRIGGER_ENTITY=sld_reserved_PhyLayer_Link_Layer_Debug_1_8133," -section_id Link_Layer_Debug
+set_global_assignment -name SLD_NODE_CREATOR_ID 110 -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_ENTITY_NAME sld_signaltap -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_clk -to "phy_layer_32bit:i_phy_layer_1|rxclkout" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[0] -to app_control_counter[0] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[1] -to app_control_counter[10] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[2] -to app_control_counter[11] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[3] -to app_control_counter[12] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[4] -to app_control_counter[13] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[5] -to app_control_counter[14] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[6] -to app_control_counter[15] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[7] -to app_control_counter[16] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[8] -to app_control_counter[17] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[9] -to app_control_counter[18] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[10] -to app_control_counter[19] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[11] -to app_control_counter[1] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[12] -to app_control_counter[2] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[13] -to app_control_counter[3] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[14] -to app_control_counter[4] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[15] -to app_control_counter[5] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[16] -to app_control_counter[6] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[17] -to app_control_counter[7] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[18] -to app_control_counter[8] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[19] -to app_control_counter[9] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[20] -to app_data_counter[0] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[21] -to app_data_counter[1] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[22] -to app_data_counter[2] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[23] -to app_data_counter[3] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[24] -to app_data_counter[4] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[25] -to app_data_counter[5] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[26] -to app_data_counter[6] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[27] -to app_data_counter[7] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[28] -to "link_layer_32bit:i_linkLayer1|pause_just_finished" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[29] -to "transport_layer:i_transport_layer1|address_from_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[30] -to "transport_layer:i_transport_layer1|address_from_user[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[31] -to "transport_layer:i_transport_layer1|address_from_user[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[32] -to "transport_layer:i_transport_layer1|address_from_user[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[33] -to "transport_layer:i_transport_layer1|address_from_user[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[34] -to "transport_layer:i_transport_layer1|address_from_user[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[35] -to "transport_layer:i_transport_layer1|address_from_user[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[36] -to "transport_layer:i_transport_layer1|address_from_user[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[37] -to "transport_layer:i_transport_layer1|address_from_user[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[38] -to "transport_layer:i_transport_layer1|address_from_user[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[39] -to "transport_layer:i_transport_layer1|address_from_user[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[40] -to "transport_layer:i_transport_layer1|address_from_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[41] -to "transport_layer:i_transport_layer1|address_from_user[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[42] -to "transport_layer:i_transport_layer1|address_from_user[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[43] -to "transport_layer:i_transport_layer1|address_from_user[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[44] -to "transport_layer:i_transport_layer1|address_from_user[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[45] -to "transport_layer:i_transport_layer1|address_from_user[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[46] -to "transport_layer:i_transport_layer1|address_from_user[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[47] -to "transport_layer:i_transport_layer1|address_from_user[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[48] -to "transport_layer:i_transport_layer1|address_from_user[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[49] -to "transport_layer:i_transport_layer1|address_from_user[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[50] -to "transport_layer:i_transport_layer1|address_from_user[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[51] -to "transport_layer:i_transport_layer1|address_from_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[52] -to "transport_layer:i_transport_layer1|address_from_user[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[53] -to "transport_layer:i_transport_layer1|address_from_user[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[54] -to "transport_layer:i_transport_layer1|address_from_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[55] -to "transport_layer:i_transport_layer1|address_from_user[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[56] -to "transport_layer:i_transport_layer1|address_from_user[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[57] -to "transport_layer:i_transport_layer1|address_from_user[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[58] -to "transport_layer:i_transport_layer1|address_from_user[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[59] -to "transport_layer:i_transport_layer1|address_from_user[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[60] -to "transport_layer:i_transport_layer1|address_from_user[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[61] -to "transport_layer:i_transport_layer1|address_to_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[62] -to "transport_layer:i_transport_layer1|address_to_user[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[63] -to "transport_layer:i_transport_layer1|address_to_user[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[64] -to "transport_layer:i_transport_layer1|address_to_user[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[65] -to "transport_layer:i_transport_layer1|address_to_user[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[66] -to "transport_layer:i_transport_layer1|address_to_user[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[67] -to "transport_layer:i_transport_layer1|address_to_user[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[68] -to "transport_layer:i_transport_layer1|address_to_user[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[69] -to "transport_layer:i_transport_layer1|address_to_user[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[70] -to "transport_layer:i_transport_layer1|address_to_user[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[71] -to "transport_layer:i_transport_layer1|address_to_user[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[72] -to "transport_layer:i_transport_layer1|address_to_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[73] -to "transport_layer:i_transport_layer1|address_to_user[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[74] -to "transport_layer:i_transport_layer1|address_to_user[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[75] -to "transport_layer:i_transport_layer1|address_to_user[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[76] -to "transport_layer:i_transport_layer1|address_to_user[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[77] -to "transport_layer:i_transport_layer1|address_to_user[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[78] -to "transport_layer:i_transport_layer1|address_to_user[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[79] -to "transport_layer:i_transport_layer1|address_to_user[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[80] -to "transport_layer:i_transport_layer1|address_to_user[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[81] -to "transport_layer:i_transport_layer1|address_to_user[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[82] -to "transport_layer:i_transport_layer1|address_to_user[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[83] -to "transport_layer:i_transport_layer1|address_to_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[84] -to "transport_layer:i_transport_layer1|address_to_user[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[85] -to "transport_layer:i_transport_layer1|address_to_user[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[86] -to "transport_layer:i_transport_layer1|address_to_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[87] -to "transport_layer:i_transport_layer1|address_to_user[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[88] -to "transport_layer:i_transport_layer1|address_to_user[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[89] -to "transport_layer:i_transport_layer1|address_to_user[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[90] -to "transport_layer:i_transport_layer1|address_to_user[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[91] -to "transport_layer:i_transport_layer1|address_to_user[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[92] -to "transport_layer:i_transport_layer1|address_to_user[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[93] -to "transport_layer:i_transport_layer1|current_state.dma_read_chk_status" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[94] -to "transport_layer:i_transport_layer1|current_state.dma_read_data_fis" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[95] -to "transport_layer:i_transport_layer1|current_state.dma_read_data_frame" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[96] -to "transport_layer:i_transport_layer1|current_state.dma_read_idle" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[97] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_0" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[98] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_1" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[99] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_2" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[100] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_3" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[101] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_4" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[102] -to "transport_layer:i_transport_layer1|current_state.dma_write_chk_activate" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[103] -to "transport_layer:i_transport_layer1|current_state.dma_write_chk_status" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[104] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_fis" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[105] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_frame" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[106] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_idle" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[107] -to "transport_layer:i_transport_layer1|current_state.dma_write_idle" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[108] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_0" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[109] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_1" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[110] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_2" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[111] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_3" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[112] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_4" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[113] -to "transport_layer:i_transport_layer1|current_state.identify_device_0" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[114] -to "transport_layer:i_transport_layer1|current_state.identify_device_1" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[115] -to "transport_layer:i_transport_layer1|current_state.identify_device_2" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[116] -to "transport_layer:i_transport_layer1|current_state.identify_device_3" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[117] -to "transport_layer:i_transport_layer1|current_state.identify_device_4" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[118] -to "transport_layer:i_transport_layer1|current_state.pause_data_tx" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[119] -to "transport_layer:i_transport_layer1|current_state.rx_identify_packet" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[120] -to "transport_layer:i_transport_layer1|current_state.rx_pio_setup" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[121] -to "transport_layer:i_transport_layer1|current_state.transport_idle" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[122] -to "transport_layer:i_transport_layer1|current_state.transport_init_end" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[123] -to "transport_layer:i_transport_layer1|current_state.transport_init_start" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[124] -to "transport_layer:i_transport_layer1|current_state.transport_reset" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[125] -to "transport_layer:i_transport_layer1|current_state.wait_for_fis_end" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[126] -to "transport_layer:i_transport_layer1|data_from_link[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[127] -to "transport_layer:i_transport_layer1|data_from_link[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[128] -to "transport_layer:i_transport_layer1|data_from_link[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[129] -to "transport_layer:i_transport_layer1|data_from_link[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[130] -to "transport_layer:i_transport_layer1|data_from_link[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[131] -to "transport_layer:i_transport_layer1|data_from_link[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[132] -to "transport_layer:i_transport_layer1|data_from_link[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[133] -to "transport_layer:i_transport_layer1|data_from_link[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[134] -to "transport_layer:i_transport_layer1|data_from_link[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[135] -to "transport_layer:i_transport_layer1|data_from_link[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[136] -to "transport_layer:i_transport_layer1|data_from_link[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[137] -to "transport_layer:i_transport_layer1|data_from_link[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[138] -to "transport_layer:i_transport_layer1|data_from_link[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[139] -to "transport_layer:i_transport_layer1|data_from_link[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[140] -to "transport_layer:i_transport_layer1|data_from_link[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[141] -to "transport_layer:i_transport_layer1|data_from_link[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[142] -to "transport_layer:i_transport_layer1|data_from_link[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[143] -to "transport_layer:i_transport_layer1|data_from_link[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[144] -to "transport_layer:i_transport_layer1|data_from_link[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[145] -to "transport_layer:i_transport_layer1|data_from_link[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[146] -to "transport_layer:i_transport_layer1|data_from_link[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[147] -to "transport_layer:i_transport_layer1|data_from_link[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[148] -to "transport_layer:i_transport_layer1|data_from_link[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[149] -to "transport_layer:i_transport_layer1|data_from_link[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[150] -to "transport_layer:i_transport_layer1|data_from_link[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[151] -to "transport_layer:i_transport_layer1|data_from_link[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[152] -to "transport_layer:i_transport_layer1|data_from_link[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[153] -to "transport_layer:i_transport_layer1|data_from_link[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[154] -to "transport_layer:i_transport_layer1|data_from_link[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[155] -to "transport_layer:i_transport_layer1|data_from_link[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[156] -to "transport_layer:i_transport_layer1|data_from_link[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[157] -to "transport_layer:i_transport_layer1|data_from_link[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[158] -to "transport_layer:i_transport_layer1|data_from_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[159] -to "transport_layer:i_transport_layer1|data_from_user[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[160] -to "transport_layer:i_transport_layer1|data_from_user[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[161] -to "transport_layer:i_transport_layer1|data_from_user[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[162] -to "transport_layer:i_transport_layer1|data_from_user[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[163] -to "transport_layer:i_transport_layer1|data_from_user[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[164] -to "transport_layer:i_transport_layer1|data_from_user[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[165] -to "transport_layer:i_transport_layer1|data_from_user[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[166] -to "transport_layer:i_transport_layer1|data_from_user[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[167] -to "transport_layer:i_transport_layer1|data_from_user[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[168] -to "transport_layer:i_transport_layer1|data_from_user[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[169] -to "transport_layer:i_transport_layer1|data_from_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[170] -to "transport_layer:i_transport_layer1|data_from_user[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[171] -to "transport_layer:i_transport_layer1|data_from_user[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[172] -to "transport_layer:i_transport_layer1|data_from_user[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[173] -to "transport_layer:i_transport_layer1|data_from_user[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[174] -to "transport_layer:i_transport_layer1|data_from_user[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[175] -to "transport_layer:i_transport_layer1|data_from_user[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[176] -to "transport_layer:i_transport_layer1|data_from_user[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[177] -to "transport_layer:i_transport_layer1|data_from_user[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[178] -to "transport_layer:i_transport_layer1|data_from_user[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[179] -to "transport_layer:i_transport_layer1|data_from_user[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[180] -to "transport_layer:i_transport_layer1|data_from_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[181] -to "transport_layer:i_transport_layer1|data_from_user[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[182] -to "transport_layer:i_transport_layer1|data_from_user[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[183] -to "transport_layer:i_transport_layer1|data_from_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[184] -to "transport_layer:i_transport_layer1|data_from_user[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[185] -to "transport_layer:i_transport_layer1|data_from_user[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[186] -to "transport_layer:i_transport_layer1|data_from_user[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[187] -to "transport_layer:i_transport_layer1|data_from_user[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[188] -to "transport_layer:i_transport_layer1|data_from_user[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[189] -to "transport_layer:i_transport_layer1|data_from_user[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[190] -to "transport_layer:i_transport_layer1|data_to_link[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[191] -to "transport_layer:i_transport_layer1|data_to_link[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[192] -to "transport_layer:i_transport_layer1|data_to_link[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[193] -to "transport_layer:i_transport_layer1|data_to_link[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[194] -to "transport_layer:i_transport_layer1|data_to_link[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[195] -to "transport_layer:i_transport_layer1|data_to_link[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[196] -to "transport_layer:i_transport_layer1|data_to_link[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[197] -to "transport_layer:i_transport_layer1|data_to_link[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[198] -to "transport_layer:i_transport_layer1|data_to_link[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[199] -to "transport_layer:i_transport_layer1|data_to_link[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[200] -to "transport_layer:i_transport_layer1|data_to_link[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[201] -to "transport_layer:i_transport_layer1|data_to_link[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[202] -to "transport_layer:i_transport_layer1|data_to_link[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[203] -to "transport_layer:i_transport_layer1|data_to_link[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[204] -to "transport_layer:i_transport_layer1|data_to_link[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[205] -to "transport_layer:i_transport_layer1|data_to_link[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[206] -to "transport_layer:i_transport_layer1|data_to_link[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[207] -to "transport_layer:i_transport_layer1|data_to_link[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[208] -to "transport_layer:i_transport_layer1|data_to_link[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[209] -to "transport_layer:i_transport_layer1|data_to_link[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[210] -to "transport_layer:i_transport_layer1|data_to_link[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[211] -to "transport_layer:i_transport_layer1|data_to_link[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[212] -to "transport_layer:i_transport_layer1|data_to_link[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[213] -to "transport_layer:i_transport_layer1|data_to_link[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[214] -to "transport_layer:i_transport_layer1|data_to_link[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[215] -to "transport_layer:i_transport_layer1|data_to_link[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[216] -to "transport_layer:i_transport_layer1|data_to_link[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[217] -to "transport_layer:i_transport_layer1|data_to_link[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[218] -to "transport_layer:i_transport_layer1|data_to_link[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[219] -to "transport_layer:i_transport_layer1|data_to_link[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[220] -to "transport_layer:i_transport_layer1|data_to_link[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[221] -to "transport_layer:i_transport_layer1|data_to_link[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[222] -to "transport_layer:i_transport_layer1|data_to_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[223] -to "transport_layer:i_transport_layer1|data_to_user[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[224] -to "transport_layer:i_transport_layer1|data_to_user[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[225] -to "transport_layer:i_transport_layer1|data_to_user[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[226] -to "transport_layer:i_transport_layer1|data_to_user[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[227] -to "transport_layer:i_transport_layer1|data_to_user[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[228] -to "transport_layer:i_transport_layer1|data_to_user[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[229] -to "transport_layer:i_transport_layer1|data_to_user[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[230] -to "transport_layer:i_transport_layer1|data_to_user[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[231] -to "transport_layer:i_transport_layer1|data_to_user[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[232] -to "transport_layer:i_transport_layer1|data_to_user[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[233] -to "transport_layer:i_transport_layer1|data_to_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[234] -to "transport_layer:i_transport_layer1|data_to_user[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[235] -to "transport_layer:i_transport_layer1|data_to_user[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[236] -to "transport_layer:i_transport_layer1|data_to_user[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[237] -to "transport_layer:i_transport_layer1|data_to_user[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[238] -to "transport_layer:i_transport_layer1|data_to_user[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[239] -to "transport_layer:i_transport_layer1|data_to_user[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[240] -to "transport_layer:i_transport_layer1|data_to_user[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[241] -to "transport_layer:i_transport_layer1|data_to_user[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[242] -to "transport_layer:i_transport_layer1|data_to_user[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[243] -to "transport_layer:i_transport_layer1|data_to_user[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[244] -to "transport_layer:i_transport_layer1|data_to_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[245] -to "transport_layer:i_transport_layer1|data_to_user[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[246] -to "transport_layer:i_transport_layer1|data_to_user[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[247] -to "transport_layer:i_transport_layer1|data_to_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[248] -to "transport_layer:i_transport_layer1|data_to_user[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[249] -to "transport_layer:i_transport_layer1|data_to_user[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[250] -to "transport_layer:i_transport_layer1|data_to_user[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[251] -to "transport_layer:i_transport_layer1|data_to_user[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[252] -to "transport_layer:i_transport_layer1|data_to_user[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[253] -to "transport_layer:i_transport_layer1|data_to_user[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[254] -to "transport_layer:i_transport_layer1|device_ready" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[255] -to "transport_layer:i_transport_layer1|rx0_locked" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[256] -to "transport_layer:i_transport_layer1|rx1_locked" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[257] -to "transport_layer:i_transport_layer1|rx_buffer_empty[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[258] -to "transport_layer:i_transport_layer1|rx_buffer_empty[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[259] -to "transport_layer:i_transport_layer1|rx_buffer_full[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[260] -to "transport_layer:i_transport_layer1|rx_buffer_full[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[261] -to "transport_layer:i_transport_layer1|rx_index" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[0] -to app_control_counter[0] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[1] -to app_control_counter[10] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[2] -to app_control_counter[11] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[3] -to app_control_counter[12] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[4] -to app_control_counter[13] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[5] -to app_control_counter[14] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[6] -to app_control_counter[15] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[7] -to app_control_counter[16] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[8] -to app_control_counter[17] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[9] -to app_control_counter[18] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[10] -to app_control_counter[19] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[11] -to app_control_counter[1] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[12] -to app_control_counter[2] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[13] -to app_control_counter[3] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[14] -to app_control_counter[4] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[15] -to app_control_counter[5] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[16] -to app_control_counter[6] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[17] -to app_control_counter[7] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[18] -to app_control_counter[8] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[19] -to app_control_counter[9] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[20] -to app_data_counter[0] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[21] -to app_data_counter[1] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[22] -to app_data_counter[2] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[23] -to app_data_counter[3] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[24] -to app_data_counter[4] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[25] -to app_data_counter[5] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[26] -to app_data_counter[6] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[27] -to app_data_counter[7] -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[28] -to "link_layer_32bit:i_linkLayer1|pause_just_finished" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[29] -to "transport_layer:i_transport_layer1|address_from_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[30] -to "transport_layer:i_transport_layer1|address_from_user[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[31] -to "transport_layer:i_transport_layer1|address_from_user[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[32] -to "transport_layer:i_transport_layer1|address_from_user[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[33] -to "transport_layer:i_transport_layer1|address_from_user[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[34] -to "transport_layer:i_transport_layer1|address_from_user[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[35] -to "transport_layer:i_transport_layer1|address_from_user[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[36] -to "transport_layer:i_transport_layer1|address_from_user[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[37] -to "transport_layer:i_transport_layer1|address_from_user[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[38] -to "transport_layer:i_transport_layer1|address_from_user[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[39] -to "transport_layer:i_transport_layer1|address_from_user[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[40] -to "transport_layer:i_transport_layer1|address_from_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[41] -to "transport_layer:i_transport_layer1|address_from_user[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[42] -to "transport_layer:i_transport_layer1|address_from_user[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[43] -to "transport_layer:i_transport_layer1|address_from_user[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[44] -to "transport_layer:i_transport_layer1|address_from_user[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[45] -to "transport_layer:i_transport_layer1|address_from_user[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[46] -to "transport_layer:i_transport_layer1|address_from_user[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[47] -to "transport_layer:i_transport_layer1|address_from_user[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[48] -to "transport_layer:i_transport_layer1|address_from_user[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[49] -to "transport_layer:i_transport_layer1|address_from_user[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[50] -to "transport_layer:i_transport_layer1|address_from_user[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[51] -to "transport_layer:i_transport_layer1|address_from_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[52] -to "transport_layer:i_transport_layer1|address_from_user[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[53] -to "transport_layer:i_transport_layer1|address_from_user[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[54] -to "transport_layer:i_transport_layer1|address_from_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[55] -to "transport_layer:i_transport_layer1|address_from_user[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[56] -to "transport_layer:i_transport_layer1|address_from_user[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[57] -to "transport_layer:i_transport_layer1|address_from_user[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[58] -to "transport_layer:i_transport_layer1|address_from_user[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[59] -to "transport_layer:i_transport_layer1|address_from_user[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[60] -to "transport_layer:i_transport_layer1|address_from_user[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[61] -to "transport_layer:i_transport_layer1|address_to_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[62] -to "transport_layer:i_transport_layer1|address_to_user[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[63] -to "transport_layer:i_transport_layer1|address_to_user[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[64] -to "transport_layer:i_transport_layer1|address_to_user[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[65] -to "transport_layer:i_transport_layer1|address_to_user[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[66] -to "transport_layer:i_transport_layer1|address_to_user[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[67] -to "transport_layer:i_transport_layer1|address_to_user[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[68] -to "transport_layer:i_transport_layer1|address_to_user[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[69] -to "transport_layer:i_transport_layer1|address_to_user[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[70] -to "transport_layer:i_transport_layer1|address_to_user[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[71] -to "transport_layer:i_transport_layer1|address_to_user[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[72] -to "transport_layer:i_transport_layer1|address_to_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[73] -to "transport_layer:i_transport_layer1|address_to_user[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[74] -to "transport_layer:i_transport_layer1|address_to_user[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[75] -to "transport_layer:i_transport_layer1|address_to_user[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[76] -to "transport_layer:i_transport_layer1|address_to_user[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[77] -to "transport_layer:i_transport_layer1|address_to_user[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[78] -to "transport_layer:i_transport_layer1|address_to_user[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[79] -to "transport_layer:i_transport_layer1|address_to_user[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[80] -to "transport_layer:i_transport_layer1|address_to_user[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[81] -to "transport_layer:i_transport_layer1|address_to_user[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[82] -to "transport_layer:i_transport_layer1|address_to_user[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[83] -to "transport_layer:i_transport_layer1|address_to_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[84] -to "transport_layer:i_transport_layer1|address_to_user[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[85] -to "transport_layer:i_transport_layer1|address_to_user[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[86] -to "transport_layer:i_transport_layer1|address_to_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[87] -to "transport_layer:i_transport_layer1|address_to_user[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[88] -to "transport_layer:i_transport_layer1|address_to_user[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[89] -to "transport_layer:i_transport_layer1|address_to_user[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[90] -to "transport_layer:i_transport_layer1|address_to_user[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[91] -to "transport_layer:i_transport_layer1|address_to_user[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[92] -to "transport_layer:i_transport_layer1|address_to_user[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[93] -to "transport_layer:i_transport_layer1|current_state.dma_read_chk_status" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[94] -to "transport_layer:i_transport_layer1|current_state.dma_read_data_fis" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[95] -to "transport_layer:i_transport_layer1|current_state.dma_read_data_frame" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[96] -to "transport_layer:i_transport_layer1|current_state.dma_read_idle" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[97] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_0" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[98] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_1" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[99] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_2" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[100] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_3" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[101] -to "transport_layer:i_transport_layer1|current_state.dma_read_reg_fis_4" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[102] -to "transport_layer:i_transport_layer1|current_state.dma_write_chk_activate" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[103] -to "transport_layer:i_transport_layer1|current_state.dma_write_chk_status" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[104] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_fis" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[105] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_frame" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[106] -to "transport_layer:i_transport_layer1|current_state.dma_write_data_idle" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[107] -to "transport_layer:i_transport_layer1|current_state.dma_write_idle" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[108] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_0" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[109] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_1" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[110] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_2" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[111] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_3" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[112] -to "transport_layer:i_transport_layer1|current_state.dma_write_reg_fis_4" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[113] -to "transport_layer:i_transport_layer1|current_state.identify_device_0" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[114] -to "transport_layer:i_transport_layer1|current_state.identify_device_1" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[115] -to "transport_layer:i_transport_layer1|current_state.identify_device_2" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[116] -to "transport_layer:i_transport_layer1|current_state.identify_device_3" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[117] -to "transport_layer:i_transport_layer1|current_state.identify_device_4" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[118] -to "transport_layer:i_transport_layer1|current_state.pause_data_tx" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[119] -to "transport_layer:i_transport_layer1|current_state.rx_identify_packet" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[120] -to "transport_layer:i_transport_layer1|current_state.rx_pio_setup" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[121] -to "transport_layer:i_transport_layer1|current_state.transport_idle" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[122] -to "transport_layer:i_transport_layer1|current_state.transport_init_end" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[123] -to "transport_layer:i_transport_layer1|current_state.transport_init_start" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[124] -to "transport_layer:i_transport_layer1|current_state.transport_reset" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[125] -to "transport_layer:i_transport_layer1|current_state.wait_for_fis_end" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[126] -to "transport_layer:i_transport_layer1|data_from_link[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[127] -to "transport_layer:i_transport_layer1|data_from_link[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[128] -to "transport_layer:i_transport_layer1|data_from_link[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[129] -to "transport_layer:i_transport_layer1|data_from_link[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[130] -to "transport_layer:i_transport_layer1|data_from_link[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[131] -to "transport_layer:i_transport_layer1|data_from_link[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[132] -to "transport_layer:i_transport_layer1|data_from_link[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[133] -to "transport_layer:i_transport_layer1|data_from_link[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[134] -to "transport_layer:i_transport_layer1|data_from_link[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[135] -to "transport_layer:i_transport_layer1|data_from_link[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[136] -to "transport_layer:i_transport_layer1|data_from_link[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[137] -to "transport_layer:i_transport_layer1|data_from_link[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[138] -to "transport_layer:i_transport_layer1|data_from_link[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[139] -to "transport_layer:i_transport_layer1|data_from_link[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[140] -to "transport_layer:i_transport_layer1|data_from_link[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[141] -to "transport_layer:i_transport_layer1|data_from_link[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[142] -to "transport_layer:i_transport_layer1|data_from_link[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[143] -to "transport_layer:i_transport_layer1|data_from_link[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[144] -to "transport_layer:i_transport_layer1|data_from_link[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[145] -to "transport_layer:i_transport_layer1|data_from_link[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[146] -to "transport_layer:i_transport_layer1|data_from_link[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[147] -to "transport_layer:i_transport_layer1|data_from_link[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[148] -to "transport_layer:i_transport_layer1|data_from_link[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[149] -to "transport_layer:i_transport_layer1|data_from_link[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[150] -to "transport_layer:i_transport_layer1|data_from_link[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[151] -to "transport_layer:i_transport_layer1|data_from_link[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[152] -to "transport_layer:i_transport_layer1|data_from_link[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[153] -to "transport_layer:i_transport_layer1|data_from_link[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[154] -to "transport_layer:i_transport_layer1|data_from_link[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[155] -to "transport_layer:i_transport_layer1|data_from_link[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[156] -to "transport_layer:i_transport_layer1|data_from_link[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[157] -to "transport_layer:i_transport_layer1|data_from_link[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[158] -to "transport_layer:i_transport_layer1|data_from_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[159] -to "transport_layer:i_transport_layer1|data_from_user[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[160] -to "transport_layer:i_transport_layer1|data_from_user[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[161] -to "transport_layer:i_transport_layer1|data_from_user[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[162] -to "transport_layer:i_transport_layer1|data_from_user[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[163] -to "transport_layer:i_transport_layer1|data_from_user[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[164] -to "transport_layer:i_transport_layer1|data_from_user[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[165] -to "transport_layer:i_transport_layer1|data_from_user[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[166] -to "transport_layer:i_transport_layer1|data_from_user[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[167] -to "transport_layer:i_transport_layer1|data_from_user[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[168] -to "transport_layer:i_transport_layer1|data_from_user[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[169] -to "transport_layer:i_transport_layer1|data_from_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[170] -to "transport_layer:i_transport_layer1|data_from_user[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[171] -to "transport_layer:i_transport_layer1|data_from_user[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[172] -to "transport_layer:i_transport_layer1|data_from_user[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[173] -to "transport_layer:i_transport_layer1|data_from_user[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[174] -to "transport_layer:i_transport_layer1|data_from_user[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[175] -to "transport_layer:i_transport_layer1|data_from_user[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[176] -to "transport_layer:i_transport_layer1|data_from_user[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[177] -to "transport_layer:i_transport_layer1|data_from_user[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[178] -to "transport_layer:i_transport_layer1|data_from_user[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[179] -to "transport_layer:i_transport_layer1|data_from_user[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[180] -to "transport_layer:i_transport_layer1|data_from_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[181] -to "transport_layer:i_transport_layer1|data_from_user[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[182] -to "transport_layer:i_transport_layer1|data_from_user[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[183] -to "transport_layer:i_transport_layer1|data_from_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[184] -to "transport_layer:i_transport_layer1|data_from_user[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[185] -to "transport_layer:i_transport_layer1|data_from_user[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[186] -to "transport_layer:i_transport_layer1|data_from_user[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[187] -to "transport_layer:i_transport_layer1|data_from_user[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[188] -to "transport_layer:i_transport_layer1|data_from_user[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[189] -to "transport_layer:i_transport_layer1|data_from_user[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[190] -to "transport_layer:i_transport_layer1|data_to_link[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[191] -to "transport_layer:i_transport_layer1|data_to_link[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[192] -to "transport_layer:i_transport_layer1|data_to_link[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[193] -to "transport_layer:i_transport_layer1|data_to_link[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[194] -to "transport_layer:i_transport_layer1|data_to_link[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[195] -to "transport_layer:i_transport_layer1|data_to_link[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[196] -to "transport_layer:i_transport_layer1|data_to_link[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[197] -to "transport_layer:i_transport_layer1|data_to_link[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[198] -to "transport_layer:i_transport_layer1|data_to_link[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[199] -to "transport_layer:i_transport_layer1|data_to_link[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[200] -to "transport_layer:i_transport_layer1|data_to_link[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[201] -to "transport_layer:i_transport_layer1|data_to_link[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[202] -to "transport_layer:i_transport_layer1|data_to_link[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[203] -to "transport_layer:i_transport_layer1|data_to_link[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[204] -to "transport_layer:i_transport_layer1|data_to_link[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[205] -to "transport_layer:i_transport_layer1|data_to_link[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[206] -to "transport_layer:i_transport_layer1|data_to_link[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[207] -to "transport_layer:i_transport_layer1|data_to_link[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[208] -to "transport_layer:i_transport_layer1|data_to_link[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[209] -to "transport_layer:i_transport_layer1|data_to_link[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[210] -to "transport_layer:i_transport_layer1|data_to_link[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[211] -to "transport_layer:i_transport_layer1|data_to_link[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[212] -to "transport_layer:i_transport_layer1|data_to_link[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[213] -to "transport_layer:i_transport_layer1|data_to_link[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[214] -to "transport_layer:i_transport_layer1|data_to_link[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[215] -to "transport_layer:i_transport_layer1|data_to_link[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[216] -to "transport_layer:i_transport_layer1|data_to_link[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[217] -to "transport_layer:i_transport_layer1|data_to_link[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[218] -to "transport_layer:i_transport_layer1|data_to_link[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[219] -to "transport_layer:i_transport_layer1|data_to_link[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[220] -to "transport_layer:i_transport_layer1|data_to_link[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[221] -to "transport_layer:i_transport_layer1|data_to_link[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[222] -to "transport_layer:i_transport_layer1|data_to_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[223] -to "transport_layer:i_transport_layer1|data_to_user[10]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[224] -to "transport_layer:i_transport_layer1|data_to_user[11]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[225] -to "transport_layer:i_transport_layer1|data_to_user[12]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[226] -to "transport_layer:i_transport_layer1|data_to_user[13]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[227] -to "transport_layer:i_transport_layer1|data_to_user[14]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[228] -to "transport_layer:i_transport_layer1|data_to_user[15]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[229] -to "transport_layer:i_transport_layer1|data_to_user[16]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[230] -to "transport_layer:i_transport_layer1|data_to_user[17]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[231] -to "transport_layer:i_transport_layer1|data_to_user[18]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[232] -to "transport_layer:i_transport_layer1|data_to_user[19]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[233] -to "transport_layer:i_transport_layer1|data_to_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[234] -to "transport_layer:i_transport_layer1|data_to_user[20]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[235] -to "transport_layer:i_transport_layer1|data_to_user[21]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[236] -to "transport_layer:i_transport_layer1|data_to_user[22]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[237] -to "transport_layer:i_transport_layer1|data_to_user[23]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[238] -to "transport_layer:i_transport_layer1|data_to_user[24]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[239] -to "transport_layer:i_transport_layer1|data_to_user[25]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[240] -to "transport_layer:i_transport_layer1|data_to_user[26]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[241] -to "transport_layer:i_transport_layer1|data_to_user[27]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[242] -to "transport_layer:i_transport_layer1|data_to_user[28]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[243] -to "transport_layer:i_transport_layer1|data_to_user[29]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[244] -to "transport_layer:i_transport_layer1|data_to_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[245] -to "transport_layer:i_transport_layer1|data_to_user[30]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[246] -to "transport_layer:i_transport_layer1|data_to_user[31]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[247] -to "transport_layer:i_transport_layer1|data_to_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[248] -to "transport_layer:i_transport_layer1|data_to_user[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[249] -to "transport_layer:i_transport_layer1|data_to_user[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[250] -to "transport_layer:i_transport_layer1|data_to_user[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[251] -to "transport_layer:i_transport_layer1|data_to_user[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[252] -to "transport_layer:i_transport_layer1|data_to_user[8]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[253] -to "transport_layer:i_transport_layer1|data_to_user[9]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[254] -to "transport_layer:i_transport_layer1|device_ready" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[255] -to "transport_layer:i_transport_layer1|rx0_locked" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[256] -to "transport_layer:i_transport_layer1|rx1_locked" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[257] -to "transport_layer:i_transport_layer1|rx_buffer_empty[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[258] -to "transport_layer:i_transport_layer1|rx_buffer_empty[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[259] -to "transport_layer:i_transport_layer1|rx_buffer_full[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[260] -to "transport_layer:i_transport_layer1|rx_buffer_full[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[261] -to "transport_layer:i_transport_layer1|rx_index" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_RAM_BLOCK_TYPE=AUTO" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_NODE_INFO=805334535" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_POWER_UP_TRIGGER=0" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK=00000000000000000000000000" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK_LENGTH=26" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_INVERSION_MASK_LENGTH=0" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_SEGMENT_SIZE=4096" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ATTRIBUTE_MEM_MODE=OFF" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STATE_FLOW_USE_GENERATED=0" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STATE_BITS=11" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_BUFFER_FULL_STOP=1" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_CURRENT_RESOURCE_WIDTH=1" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INCREMENTAL_ROUTING=1" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[10] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[14] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[17] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[23] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[25] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[26] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[29] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL=1" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_SAMPLE_DEPTH=4096" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_IN_ENABLED=0" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ADVANCED_TRIGGER_ENTITY=sld_reserved_PhyLayer_transport_layer_debug_1_aeb2," -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL_PIPELINE=1" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ENABLE_ADVANCED_TRIGGER=1" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[4] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[5] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[6] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[7] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[8] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[9] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[18] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[19] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[20] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[22] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[28] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[30] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[31] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[262] -to "transport_layer:i_transport_layer1|status_from_link[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[263] -to "transport_layer:i_transport_layer1|status_from_link[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[264] -to "transport_layer:i_transport_layer1|status_from_link[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[265] -to "transport_layer:i_transport_layer1|status_from_link[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[266] -to "transport_layer:i_transport_layer1|status_from_link[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[267] -to "transport_layer:i_transport_layer1|status_from_link[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[268] -to "transport_layer:i_transport_layer1|status_from_link[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[269] -to "transport_layer:i_transport_layer1|status_from_link[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[270] -to "transport_layer:i_transport_layer1|status_to_link[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[271] -to "transport_layer:i_transport_layer1|status_to_link[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[272] -to "transport_layer:i_transport_layer1|status_to_link[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[273] -to "transport_layer:i_transport_layer1|status_to_link[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[274] -to "transport_layer:i_transport_layer1|status_to_link[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[275] -to "transport_layer:i_transport_layer1|status_to_link[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[276] -to "transport_layer:i_transport_layer1|status_to_link[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[277] -to "transport_layer:i_transport_layer1|status_to_link[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[278] -to "transport_layer:i_transport_layer1|status_to_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[279] -to "transport_layer:i_transport_layer1|status_to_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[280] -to "transport_layer:i_transport_layer1|status_to_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[281] -to "transport_layer:i_transport_layer1|status_to_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[282] -to "transport_layer:i_transport_layer1|tx0_locked" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[283] -to "transport_layer:i_transport_layer1|tx1_locked" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[284] -to "transport_layer:i_transport_layer1|tx_buffer_full[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[285] -to "transport_layer:i_transport_layer1|tx_buffer_full[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[286] -to "transport_layer:i_transport_layer1|tx_index" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[287] -to "transport_layer:i_transport_layer1|user_command[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[288] -to "transport_layer:i_transport_layer1|user_command[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[289] -to "transport_layer:i_transport_layer1|user_command[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[290] -to "transport_layer:i_transport_layer1|rx_read_ptr[0]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[291] -to "transport_layer:i_transport_layer1|rx_read_ptr[1]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[292] -to "transport_layer:i_transport_layer1|rx_read_ptr[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[293] -to "transport_layer:i_transport_layer1|rx_read_ptr[3]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[294] -to "transport_layer:i_transport_layer1|rx_read_ptr[4]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[295] -to "transport_layer:i_transport_layer1|rx_read_ptr[5]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[296] -to "transport_layer:i_transport_layer1|rx_read_ptr[6]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[297] -to "transport_layer:i_transport_layer1|rx_read_ptr[7]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[298] -to "transport_layer:i_transport_layer1|rx_write_ptr[0]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[299] -to "transport_layer:i_transport_layer1|rx_write_ptr[1]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[300] -to "transport_layer:i_transport_layer1|rx_write_ptr[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[301] -to "transport_layer:i_transport_layer1|rx_write_ptr[3]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[302] -to "transport_layer:i_transport_layer1|rx_write_ptr[4]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[303] -to "transport_layer:i_transport_layer1|rx_write_ptr[5]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[304] -to "transport_layer:i_transport_layer1|rx_write_ptr[6]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[305] -to "transport_layer:i_transport_layer1|rx_write_ptr[7]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[306] -to "transport_layer:i_transport_layer1|tx_read_ptr[0]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[307] -to "transport_layer:i_transport_layer1|tx_read_ptr[1]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[308] -to "transport_layer:i_transport_layer1|tx_read_ptr[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[309] -to "transport_layer:i_transport_layer1|tx_read_ptr[3]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[310] -to "transport_layer:i_transport_layer1|tx_read_ptr[4]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[311] -to "transport_layer:i_transport_layer1|tx_read_ptr[5]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[312] -to "transport_layer:i_transport_layer1|tx_read_ptr[6]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[313] -to "transport_layer:i_transport_layer1|tx_read_ptr[7]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[314] -to "transport_layer:i_transport_layer1|tx_write_ptr[0]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[315] -to "transport_layer:i_transport_layer1|tx_write_ptr[1]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[316] -to "transport_layer:i_transport_layer1|tx_write_ptr[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[317] -to "transport_layer:i_transport_layer1|tx_write_ptr[3]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[318] -to "transport_layer:i_transport_layer1|tx_write_ptr[4]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[319] -to "transport_layer:i_transport_layer1|tx_write_ptr[5]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[320] -to "transport_layer:i_transport_layer1|tx_write_ptr[6]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[321] -to "transport_layer:i_transport_layer1|tx_write_ptr[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[262] -to "transport_layer:i_transport_layer1|status_from_link[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[263] -to "transport_layer:i_transport_layer1|status_from_link[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[264] -to "transport_layer:i_transport_layer1|status_from_link[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[265] -to "transport_layer:i_transport_layer1|status_from_link[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[266] -to "transport_layer:i_transport_layer1|status_from_link[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[267] -to "transport_layer:i_transport_layer1|status_from_link[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[268] -to "transport_layer:i_transport_layer1|status_from_link[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[269] -to "transport_layer:i_transport_layer1|status_from_link[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[270] -to "transport_layer:i_transport_layer1|status_to_link[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[271] -to "transport_layer:i_transport_layer1|status_to_link[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[272] -to "transport_layer:i_transport_layer1|status_to_link[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[273] -to "transport_layer:i_transport_layer1|status_to_link[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[274] -to "transport_layer:i_transport_layer1|status_to_link[4]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[275] -to "transport_layer:i_transport_layer1|status_to_link[5]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[276] -to "transport_layer:i_transport_layer1|status_to_link[6]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[277] -to "transport_layer:i_transport_layer1|status_to_link[7]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[278] -to "transport_layer:i_transport_layer1|status_to_user[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[279] -to "transport_layer:i_transport_layer1|status_to_user[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[280] -to "transport_layer:i_transport_layer1|status_to_user[2]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[281] -to "transport_layer:i_transport_layer1|status_to_user[3]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[282] -to "transport_layer:i_transport_layer1|tx0_locked" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[283] -to "transport_layer:i_transport_layer1|tx1_locked" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[284] -to "transport_layer:i_transport_layer1|tx_buffer_full[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[285] -to "transport_layer:i_transport_layer1|tx_buffer_full[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[286] -to "transport_layer:i_transport_layer1|tx_index" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[287] -to "transport_layer:i_transport_layer1|user_command[0]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[288] -to "transport_layer:i_transport_layer1|user_command[1]" -section_id transport_layer_debug
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[289] -to "transport_layer:i_transport_layer1|user_command[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[290] -to "transport_layer:i_transport_layer1|rx_read_ptr[0]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[291] -to "transport_layer:i_transport_layer1|rx_read_ptr[1]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[292] -to "transport_layer:i_transport_layer1|rx_read_ptr[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[293] -to "transport_layer:i_transport_layer1|rx_read_ptr[3]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[294] -to "transport_layer:i_transport_layer1|rx_read_ptr[4]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[295] -to "transport_layer:i_transport_layer1|rx_read_ptr[5]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[296] -to "transport_layer:i_transport_layer1|rx_read_ptr[6]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[297] -to "transport_layer:i_transport_layer1|rx_read_ptr[7]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[298] -to "transport_layer:i_transport_layer1|rx_write_ptr[0]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[299] -to "transport_layer:i_transport_layer1|rx_write_ptr[1]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[300] -to "transport_layer:i_transport_layer1|rx_write_ptr[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[301] -to "transport_layer:i_transport_layer1|rx_write_ptr[3]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[302] -to "transport_layer:i_transport_layer1|rx_write_ptr[4]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[303] -to "transport_layer:i_transport_layer1|rx_write_ptr[5]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[304] -to "transport_layer:i_transport_layer1|rx_write_ptr[6]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[305] -to "transport_layer:i_transport_layer1|rx_write_ptr[7]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[306] -to "transport_layer:i_transport_layer1|tx_read_ptr[0]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[307] -to "transport_layer:i_transport_layer1|tx_read_ptr[1]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[308] -to "transport_layer:i_transport_layer1|tx_read_ptr[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[309] -to "transport_layer:i_transport_layer1|tx_read_ptr[3]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[310] -to "transport_layer:i_transport_layer1|tx_read_ptr[4]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[311] -to "transport_layer:i_transport_layer1|tx_read_ptr[5]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[312] -to "transport_layer:i_transport_layer1|tx_read_ptr[6]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[313] -to "transport_layer:i_transport_layer1|tx_read_ptr[7]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[314] -to "transport_layer:i_transport_layer1|tx_write_ptr[0]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[315] -to "transport_layer:i_transport_layer1|tx_write_ptr[1]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[316] -to "transport_layer:i_transport_layer1|tx_write_ptr[2]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[317] -to "transport_layer:i_transport_layer1|tx_write_ptr[3]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[318] -to "transport_layer:i_transport_layer1|tx_write_ptr[4]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[319] -to "transport_layer:i_transport_layer1|tx_write_ptr[5]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[320] -to "transport_layer:i_transport_layer1|tx_write_ptr[6]" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[321] -to "transport_layer:i_transport_layer1|tx_write_ptr[7]" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_DATA_BITS=322" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_BITS=322" -section_id transport_layer_debug
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_BITS=322" -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[0] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[1] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[2] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[3] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[11] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[12] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[13] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[15] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[16] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[21] -to transport_layer_debug|vcc -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[24] -to transport_layer_debug|gnd -section_id transport_layer_debug
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[27] -to transport_layer_debug|gnd -section_id transport_layer_debug
 set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

@@ -58,6 +58,7 @@ entity scrambler is
   port (clk 		: in std_logic;
 		rst_n		: in std_logic;
 		scram_en	: in std_logic;
+        scram_pause : in std_logic;
 		scram_rst	: in std_logic;
 		scram_rdy	: out std_logic;
 		data_in 	: in std_logic_vector (31 downto 0);
@@ -131,22 +132,15 @@ begin
           lfsr_q <= b"1111111111111111";
 		  data_out <= x"00000000";			-- clear the output
 		  scram_rdy <= '0';
-        elsif (scram_en = '1') then
+        elsif (scram_en = '1' and scram_pause = '0') then
           lfsr_q <= lfsr_c; 										-- update the lfsr value to be used in the calculation with the result of the previous calculation
 		  data_out <= data_c;
 		  scram_rdy <= '1';
-		elsif (scram_en = '0') then
-		--  data_out <= x"00000000";	-- clear the output when paused
-		--  scram_rdy <= '0';
-		--elsif (scram_en = '1') then
-       --   data_out <= data_c; 										-- assign the output data
-		 -- data_out <= data_in;											-- scrambler off
+        elsif (scram_pause = '1') then
+          lfsr_q <= lfsr_c;                                         -- update the lfsr value to be used in the calculation with the result of the previous calculation
+         -- data_out <= data_c;
+          scram_rdy <= '1';
        	end if;
-
-        --if (scram_en = '1') then
-         -- data_out <= data_c; 										-- assign the output data
-		 -- data_out <= data_in;											-- scrambler off
-       --	end if;
       end if;
     end process;
 end architecture scrambler_arch;
