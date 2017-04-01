@@ -184,6 +184,7 @@ signal s_crc_data_valid		: std_logic;							-- flag indicating that the input da
 signal s_crc_data_valid_prev: std_logic;
 signal s_rx_data_in_temp	: std_logic_vector(31 downto 0);		-- vector that holds the previous primitive
 signal s_cont_flag			: std_logic;							-- flag to indicate that CONTp has been received
+signal s_cont_flag_prev		: std_logic;							-- flag to indicate that CONTp has been received
 signal s_cont_flag_transmit	: std_logic;							-- flagh to indicate that CONTp is being transmitted
 
 signal s_primitive_in_temp 	: std_logic; 					-- Flag high when primitive primitive received or last primitive was contp
@@ -192,11 +193,9 @@ signal pause_just_finished  : std_logic;
 signal s_primitive_out_temp	: std_logic;
 signal s_tx_data_out_temp	: std_logic_vector(31 downto 0);		-- transmit data out (Physical Layer)
 
-signal s_tx_data_in_reg		: std_logic_vector(31 downto 0);
-signal long_pause_flag		: std_logic;
-
 signal crc_started 			: std_logic;
 signal s_primitive 			: std_logic_vector(31 downto 0);
+signal s_primitive_prev 	: std_logic_vector(31 downto 0);
 
 begin
 -- debug signals
@@ -217,46 +216,35 @@ s_phy_status_in(3 downto 0) 	<= phy_status_in(3 downto 0);
 
 phy_status_out <= s_phy_status_out;
 
-process (s_rst_n, s_clk)
-	begin
-		if(s_rst_n = '0') then
-			s_tx_data_in_reg		<= x"00000000";
-		elsif (rising_edge(s_clk)) then
-			if (s_trans_status_in(c_l_transmit_request) = '1') then
-				s_tx_data_in_reg		<= tx_data_in;
-			end if;
-		end if;
-	end process;
-
-
-process (s_rst_n, s_clk)
-	begin
-		if(s_rst_n = '0') then
-			long_pause_flag <= '0';
-		elsif (rising_edge(s_clk)) then
-			if (pause_just_finished = '1') then
-				long_pause_flag <= long_pause_flag;
-			elsif (s_trans_status_in(c_l_transmit_request) = '0' and s_phy_status_in(c_l_pause_all) = '1') then
-				long_pause_flag <= '1';
-			else
-				long_pause_flag <= '0';
-			end if;
-		end if;
-	end process;
-
-
 process (s_clk, s_rst_n)
 	begin
 		if(s_rst_n = '0') then
 			pause_just_finished 	<= '0';
 			s_crc_data_valid_prev 	<= '0';
-		--	s_tx_data_in_reg		<= x"00000000";
 		elsif (rising_edge(s_clk)) then
 			pause_just_finished		<= phy_status_in(c_l_pause_all);
 			s_crc_data_valid_prev 	<= s_crc_data_valid;
 
 		end if;
 	end process;
+
+CONT_PREV: process(s_rst_n, s_clk)
+begin
+	if(s_rst_n = '0') then
+		s_cont_flag_prev <=  '0';
+	elsif(rising_edge(s_clk)) then
+		s_cont_flag_prev <= s_cont_flag;
+	end if;
+end process;
+
+PRIMITIVE_PREV : process(s_rst_n, s_clk)
+begin
+	if(s_rst_n = '0') then
+		s_primitive_prev <=  (others => '0');
+	elsif(rising_edge(s_clk)) then
+		s_primitive_prev <= s_primitive;
+	end if;
+end process;
 
 -- Receive CONTp Functionality (assigns s_rx_data_in)
 RECEIVE_CONTP: process (s_rst_n, phy_status_in, rx_data_in, s_cont_flag) -- assign s_rx_data_in based on whether CONTp is active
@@ -271,22 +259,22 @@ RECEIVE_CONTP: process (s_rst_n, phy_status_in, rx_data_in, s_cont_flag) -- assi
 				s_rx_data_in 			<= rx_data_in;
 				s_cont_flag 			<= '0';
 			else
-				s_primitive 			<= s_primitive;
-				s_rx_data_in 			<= s_primitive;
+				s_primitive 			<= s_primitive_prev;
+				s_rx_data_in 			<= s_primitive_prev;
 				s_cont_flag 			<= '1';
 			end if;
-		elsif(s_cont_flag = '1') then
-			s_primitive 				<= s_primitive;
-			s_rx_data_in 				<= s_primitive;
+		elsif(s_cont_flag_prev = '1') then
+			s_primitive 				<= s_primitive_prev;
+			s_rx_data_in 				<= s_primitive_prev;
 			s_cont_flag 				<= '1';
 		else -- not recieving a prim, and cont_flag = '0' --> data from device
-			s_primitive 				<= s_primitive;
+			s_primitive 				<= s_primitive_prev;
 			s_rx_data_in 				<= rx_data_in;
 			s_cont_flag 				<= '0';
 		end if;
   end process;
 
-
+  s_primitive_in_temp <= s_phy_status_in(c_l_primitive_in) or s_cont_flag;
 
 -- Transmit CONTp Functionality (assigns s_rx_data_in)
 --TRANSMIT_CONTP_MEMORY: process (s_clk,s_rst_n)						-- memory to latch the previous valid primitive from the Physical Layer
@@ -389,7 +377,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
     end process;
 
 
-    NEXT_STATE_LOGIC: process (current_state, s_rst_n, s_rx_data_in, s_trans_status_in, s_tx_data_in, s_phy_status_in, s_crc, s_cont_flag, s_primitive_in_temp,pause_just_finished, long_pause_flag)
+    NEXT_STATE_LOGIC: process (current_state, s_rst_n, s_rx_data_in, s_trans_status_in, s_tx_data_in, s_phy_status_in, s_crc, s_cont_flag, s_primitive_in_temp,pause_just_finished)
       begin
         case (current_state) is
 			-- Idle SM states (top level)
@@ -491,7 +479,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									--	next_state <= L_SendData;
 									elsif (s_phy_status_in(c_l_pause_all) = '1') then											-- do not change states during a pause
 										next_state <= L_SendData;
-									elsif ((s_trans_status_in(c_l_data_done) = '0' and pause_just_finished = '0') or long_pause_flag = '1') then
+									elsif (s_trans_status_in(c_l_data_done) = '0') then -- and pause_just_finished = '0') or long_pause_flag = '1') then
 									--elsif (s_trans_status_in(c_l_data_done) = '0') then											-- No more data to transmit
 										next_state <= L_SendCRC;
 									elsif ((s_trans_status_in(c_l_data_done) = '1' and s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=HOLDp)) then	-- more data to transmit
@@ -565,8 +553,6 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										next_state <= L_Idle;
 									elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0) = R_ERRp) then			-- Physical Layer indicates there was an error with the transmission
 										next_state <= L_Idle;
-									elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0) = R_ERRp) then
-										next_state <= L_Idle;
 									elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0) = SYNCp) then			-- Physical Layer requests synchronization, failing the transmission
 										next_state <= L_Idle;
 									else 																								-- wait for a response from the Physical Layer
@@ -588,9 +574,9 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										next_state <= L_Idle;										-- if the Physical Layer no longer signals that data is ready, return to the Idle state to await further commands
 									end if;
 			-- L_RcvChkRdy sends a response to the Physical Layer that the Transport Layer is ready to receive
-			when L_RcvChkRdy		=> if (s_phy_status_in(c_l_phyrdy)/='1') then				-- PHYRDYn: Physical Layer indicates the communication channel failed
+			when L_RcvChkRdy		=> if (s_phy_status_in(c_l_phyrdy) /='1') then				-- PHYRDYn: Physical Layer indicates the communication channel failed
 										next_state <= L_NoCommErr;
-									elsif (pause_just_finished = '1') then				-- Physical Layer pauses transmission (for ALIGNp)
+									elsif (phy_status_in(c_l_pause_all) = '1') then				-- Physical Layer pauses transmission (for ALIGNp)
 										next_state <= L_RcvChkRdy;
 									elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0)=X_RDYp) then			-- wait for a response from the Physical Layer
 										next_state <= L_RcvChkRdy;
@@ -991,7 +977,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_rst										<= '1';				-- reset is done
 									s_scram_pause									<= '0';
 
-									if (pause_just_finished = '1') then
+									if (phy_status_in(c_l_pause_all) = '1') then
 										s_crc_data_valid 							<= '0';				-- pause the crc generator
 										s_lfsr_en									<= '0';				-- pause the scrambler component
 									else
@@ -1030,16 +1016,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 									s_lfsr_rst										<= '1';				-- do not reset the scrambler component (active low) using the independent reset
 
 
-									if (pause_just_finished = '1' and s_trans_status_in(c_l_data_done) = '0') then
-										s_crc_data_in								<= s_tx_data_in_reg;		-- no data to input to the crc component
-										s_crc_data_valid 							<= '1';				-- inform the crc component that the input data are no longer valid
-										s_eof 										<= '0';				-- end the crc calculation
-
-										s_lfsr_data_in								<= s_tx_data_in_reg;-- scramble the previous data from the Transport Layer
-										s_lfsr_en									<= '1';				-- enable the scrambler component
-										s_scram_pause								<= '0';
-
-									elsif (s_phy_status_in(c_l_pause_all) = '1') then
+									if (s_phy_status_in(c_l_pause_all) = '1') then
 									--if (pause_just_finished = '1') then
 										s_crc_data_in								<= c_no_data;		-- no data to input to the crc component
 										s_crc_data_valid 							<= '0';				-- inform the crc component that the input data are no longer valid
@@ -1049,7 +1026,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 										s_lfsr_en									<= '0';				-- enable the scrambler component
 										s_scram_pause								<= '0';
 
-									elsif ((s_trans_status_in(c_l_data_done) = '0' and pause_just_finished = '0') or long_pause_flag = '1') then					-- if the transmission is over
+									elsif (s_trans_status_in(c_l_data_done) = '0') then -- and pause_just_finished = '0') or long_pause_flag = '1') then					-- if the transmission is over
 										s_crc_data_in								<= c_no_data;		-- no data to input to the crc component
 										s_crc_data_valid 							<= '0';				-- inform the crc component that the input data are no longer valid
 										s_eof 										<= '1';				-- end the crc calculation
@@ -1397,7 +1374,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 											s_trans_status_out(c_l_rcv_data_valid)			<= '0';				-- inform the Transport Layer that the Link Layer is not sending valid receive data
 										end if;
 
-										if (pause_just_finished = '1') then
+										if (s_phy_status_in(c_l_pause_all) = '1') then
 											s_lfsr_en									<= '0';
 										elsif (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0) = HOLDp) then	-- more data to transmit and Physical sends HOLDAp
 											s_lfsr_en									<= '0';										-- pause the descrambler (set enable to zero)
@@ -1464,7 +1441,7 @@ STATE_MEMORY: process (s_clk,s_rst_n)
 
 									if (s_primitive_in_temp = '1' and s_rx_data_in(31 downto 0) = HOLDp) then
 										s_lfsr_en										<= '0';
-									elsif (pause_just_finished = '1') then
+									elsif (phy_status_in(c_l_pause_all) = '1') then
 										s_lfsr_en										<= '0';
 									else
 										s_lfsr_en										<= '1';
